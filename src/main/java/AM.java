@@ -36,8 +36,11 @@ public class AM {
 
         while (true) {
             String input = scanner.nextLine();
-            String[] command = input.split("\\s+");
-            switch (command[0]) {
+            String[] parts = input.split("\\s", 2);
+            String input_command = parts[0];
+            String input_args = parts[1];
+
+            switch (input_command) {
                 case "bye":
                     printResponse(FAREWELL);
                     return;
@@ -45,13 +48,13 @@ public class AM {
                     printResponse(tasks.toString());
                     break;
                 case "mark": {
-                    int taskIndex = Integer.parseInt(command[1]) - 1;
+                    int taskIndex = Integer.parseInt(input_args) - 1;
                     tasks.markTask(taskIndex);
                     printResponse("Marked:", tasks.getTaskString(taskIndex));
                     break;
                 }
                 case "unmark": {
-                    int taskIndex = Integer.parseInt(command[1]) - 1;
+                    int taskIndex = Integer.parseInt(input_args) - 1;
                     tasks.unmarkTask(taskIndex);
                     printResponse("Unmarked:", tasks.getTaskString(taskIndex));
                     break;
