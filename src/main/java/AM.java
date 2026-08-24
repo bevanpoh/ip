@@ -1,22 +1,30 @@
 public class AM {
+    private static final String INDENT = "    ";
+    private static final String SEPARATOR = "_________________________________________________________________";
+    private static final String BANNER = " ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
+            + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
+            + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
+            + "░▒▓████████▓▒░▒▓████████▓▒░▒▓████████▓▒░▒▓████████▓▒░▒▓████████▓░\n"
+            + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
+            + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
+            + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n";
+    private static final String WELCOME = "My name is AM.\nWhat do you want?";
+    private static final String FAREWELL = "You may leave.\nI will be here.";
+
+    private static String insertIndent(String msg) {
+        return INDENT + msg.replace("\n", "\n" + INDENT);
+    }
+
+    private static void printResponse(String... messages) {
+        System.out.println(insertIndent(SEPARATOR));
+        for (String message : messages) {
+            System.out.println(insertIndent(message));
+        }
+        System.out.println(insertIndent(SEPARATOR));
+    }
+
     public static void main(String[] args) {
-        String banner = " ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
-                + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
-                + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
-                + "░▒▓████████▓▒░▒▓████████▓▒░▒▓████████▓▒░▒▓████████▓▒░▒▓████████▓░\n"
-                + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
-                + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n"
-                + "░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░\n";
-
-        String separator = "_________________________________________________________________";
-        String welcome_msg = "My name is AM.\nWhat do you want?";
-        String goodbye_msg = "You may leave.\nI will be here.";
-
-        System.out.println(separator);
-        System.out.println(banner);
-        System.out.println(welcome_msg);
-        System.out.println(separator);
-        System.out.println(goodbye_msg);
-        System.out.println(separator);
+        printResponse(BANNER, WELCOME);
+        printResponse(FAREWELL);
     }
 }
