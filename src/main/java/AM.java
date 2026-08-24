@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 public class AM {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = "_________________________________________________________________";
@@ -24,7 +26,17 @@ public class AM {
     }
 
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
         printResponse(BANNER, WELCOME);
-        printResponse(FAREWELL);
+
+        while (true) {
+            String command = scanner.nextLine();
+            if (command.equals("bye")) {
+                printResponse(FAREWELL);
+                break;
+            }
+            printResponse(command);
+        }
     }
 }
