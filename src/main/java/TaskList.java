@@ -11,6 +11,18 @@ public class TaskList {
         tasks[task_count++] = task;
     }
 
+    public void markTask(int taskNum) {
+        tasks[taskNum].mark();
+    }
+
+    public void unmarkTask(int taskNum) {
+        tasks[taskNum].unmark();
+    }
+
+    public String getTaskString(int taskNum) {
+        return tasks[taskNum].toString();
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

@@ -42,6 +42,18 @@ public class AM {
                 case "list":
                     printResponse(tasks.toString());
                     break;
+                case "mark": {
+                    int taskIndex = Integer.parseInt(command[1]) - 1;
+                    tasks.markTask(taskIndex);
+                    printResponse("Marked:", tasks.getTaskString(taskIndex));
+                    break;
+                }
+                case "unmark": {
+                    int taskIndex = Integer.parseInt(command[1]) - 1;
+                    tasks.unmarkTask(taskIndex);
+                    printResponse("Unmarked:", tasks.getTaskString(taskIndex));
+                    break;
+                }
                 default:
                     tasks.addTask(new Task(input));
                     printResponse("added: " + input);
