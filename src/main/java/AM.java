@@ -13,6 +13,8 @@ public class AM {
     private static final String WELCOME = "My name is AM.\nWhat do you want?";
     private static final String FAREWELL = "You may leave.\nI will be here.";
 
+    private static final TaskList tasks = new TaskList(100);
+
     private static String insertIndent(String msg) {
         return INDENT + msg.replace("\n", "\n" + INDENT);
     }
@@ -32,11 +34,18 @@ public class AM {
 
         while (true) {
             String command = scanner.nextLine();
-            if (command.equals("bye")) {
-                printResponse(FAREWELL);
-                break;
+            switch (command) {
+                case "bye":
+                    printResponse(FAREWELL);
+                    return;
+                case "list":
+                    printResponse(tasks.toString());
+                    break;
+                default:
+                    tasks.addTask(new Task(command));
+                    printResponse("added: " + command);
+                    break;
             }
-            printResponse(command);
         }
     }
 }
