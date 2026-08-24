@@ -33,8 +33,9 @@ public class AM {
         printResponse(BANNER, WELCOME);
 
         while (true) {
-            String command = scanner.nextLine();
-            switch (command) {
+            String input = scanner.nextLine();
+            String[] command = input.split("\\s+");
+            switch (command[0]) {
                 case "bye":
                     printResponse(FAREWELL);
                     return;
@@ -42,8 +43,8 @@ public class AM {
                     printResponse(tasks.toString());
                     break;
                 default:
-                    tasks.addTask(new Task(command));
-                    printResponse("added: " + command);
+                    tasks.addTask(new Task(input));
+                    printResponse("added: " + input);
                     break;
             }
         }
