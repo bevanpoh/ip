@@ -3,7 +3,7 @@ import Exceptions.UnknownCommandException;
 
 public class Parser {
     public static Command parse(String input) throws UnknownCommandException, MissingArgumentException {
-        String[] parts = input.split("\\s", 2);
+        String[] parts = input.split("\\s+", 2);
         String commandType = parts[0].trim();
         switch (commandType) {
             case "bye":
@@ -14,7 +14,7 @@ public class Parser {
                 int taskIndex;
                 try {
                     taskIndex = Integer.parseInt(parts[1].trim()) - 1;
-                } catch (ArrayIndexOutOfBoundsException err) {
+                } catch (ArrayIndexOutOfBoundsException | NumberFormatException err) {
                     throw new MissingArgumentException("You messed up the command");
                 }
                 return new Command.MarkCommand(taskIndex);
@@ -66,7 +66,7 @@ public class Parser {
                 int taskIndex;
                 try {
                     taskIndex = Integer.parseInt(parts[1].trim()) - 1;
-                } catch (ArrayIndexOutOfBoundsException err) {
+                } catch (ArrayIndexOutOfBoundsException | NumberFormatException err) {
                     throw new MissingArgumentException("You messed up the command");
                 }
                 return new Command.DeleteTaskCommand(taskIndex);
