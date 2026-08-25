@@ -1,3 +1,5 @@
+import Exceptions.TaskListLengthExceededException;
+
 public class TaskList {
     private final Task[] tasks;
     private int task_count;
@@ -11,16 +13,25 @@ public class TaskList {
         tasks[task_count++] = task;
     }
 
-    public void markTask(int taskNum) {
-        tasks[taskNum].mark();
+    public void markTask(int taskIdx) throws TaskListLengthExceededException {
+        if (taskIdx >= task_count || taskIdx < 0) {
+            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
+        }
+        tasks[taskIdx].mark();
     }
 
-    public void unmarkTask(int taskNum) {
-        tasks[taskNum].unmark();
+    public void unmarkTask(int taskIdx) throws TaskListLengthExceededException {
+        if (taskIdx >= task_count || taskIdx < 0) {
+            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
+        }
+        tasks[taskIdx].unmark();
     }
 
-    public String getTaskString(int taskNum) {
-        return tasks[taskNum].toString();
+    public String getTaskString(int taskIdx) throws TaskListLengthExceededException {
+        if (taskIdx >= task_count || taskIdx < 0) {
+            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
+        }
+        return tasks[taskIdx].toString();
     }
 
     public int getLength() {
@@ -34,7 +45,7 @@ public class TaskList {
             if (i > 0) {
                 result.append("\n");
             }
-            result.append(i+1)
+            result.append(i + 1)
                     .append(". ")
                     .append(tasks[i]);
         }

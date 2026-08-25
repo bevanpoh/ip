@@ -1,4 +1,5 @@
 import Exceptions.MissingArgumentException;
+import Exceptions.TaskListLengthExceededException;
 import Exceptions.UnknownCommandException;
 
 import java.util.Scanner;
@@ -48,13 +49,21 @@ public class AM {
                     printResponse(tasks.toString());
                     break;
                 case Command.MarkCommand c: {
-                    tasks.markTask(c.getIndex());
-                    printResponse(String.format("Marked:\n%s", tasks.getTaskString(c.getIndex())));
+                    try {
+                        tasks.markTask(c.getIndex());
+                        printResponse(String.format("Marked:\n%s", tasks.getTaskString(c.getIndex())));
+                    } catch (TaskListLengthExceededException err) {
+                        printResponse(String.format("You don't have task number %d", c.getIndex() + 1));
+                    }
                     break;
                 }
                 case Command.UnmarkCommand c: {
-                    tasks.unmarkTask(c.getIndex());
-                    printResponse(String.format("Unmarked:\n%s", tasks.getTaskString(c.getIndex())));
+                    try {
+                        tasks.unmarkTask(c.getIndex());
+                        printResponse(String.format("Unmarked:\n%s", tasks.getTaskString(c.getIndex())));
+                    } catch (TaskListLengthExceededException err) {
+                        printResponse(String.format("You don't have task number %d", c.getIndex() + 1));
+                    }
                     break;
                 }
                 case Command.AddTaskCommand c:

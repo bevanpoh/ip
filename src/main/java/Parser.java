@@ -23,7 +23,7 @@ public class Parser {
                 int taskIndex;
                 try {
                     taskIndex = Integer.parseInt(parts[1].trim()) - 1;
-                } catch (ArrayIndexOutOfBoundsException err) {
+                } catch (ArrayIndexOutOfBoundsException | NumberFormatException err) {
                     throw new MissingArgumentException("You messed up the command");
                 }
                 return new Command.UnmarkCommand(taskIndex);
