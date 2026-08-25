@@ -1,5 +1,3 @@
-import Exceptions.TaskListLengthExceededException;
-
 import java.util.ArrayList;
 
 public class TaskList {
@@ -13,32 +11,20 @@ public class TaskList {
         tasks.add(task);
     }
 
-    public void markTask(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= tasks.size() || taskIdx < 0) {
-            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
-        }
+    public void markTask(int taskIdx) {
         tasks.get(taskIdx).mark();
     }
 
-    public void unmarkTask(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= tasks.size() || taskIdx < 0) {
-            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
-        }
+    public void unmarkTask(int taskIdx) {
         tasks.get(taskIdx).unmark();
     }
 
-    public void deleteTask(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= tasks.size() || taskIdx < 0) {
-            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
-        }
+    public void deleteTask(int taskIdx) {
         tasks.remove(taskIdx);
     }
 
-    public String getTaskString(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= tasks.size() || taskIdx < 0) {
-            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
-        }
-        return tasks.get(taskIdx).toString();
+    public Task getTask(int taskIdx) {
+        return tasks.get(taskIdx);
     }
 
     public int getLength() {
