@@ -23,6 +23,6 @@ public class Task {
             doneStatus = "[ ]";
         }
 
-        return doneStatus + " " + name;
+        return String.format("%s %s", doneStatus, name);
     }
 }
