@@ -23,6 +23,10 @@ public class TaskList {
         return tasks[taskNum].toString();
     }
 
+    public int getLength() {
+        return task_count;
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

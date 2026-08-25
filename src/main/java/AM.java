@@ -56,7 +56,7 @@ public class AM {
                 }
                 case Command.AddTaskCommand c:
                     tasks.addTask(c.getTask());
-                    printResponse("added: " + c.getTask().toString());
+                    printResponse("added: " + c.getTask().toString(), String.format("Now you have %s tasks in the list", tasks.getLength()));
                     break;
             }
         }
