@@ -1,3 +1,5 @@
+import Exceptions.UnknownCommandException;
+
 import java.util.Scanner;
 
 public class AM {
@@ -30,7 +32,13 @@ public class AM {
 
         while (true) {
             String input = scanner.nextLine();
-            Command command = Parser.parse(input);
+            Command command;
+            try {
+                command = Parser.parse(input);
+            } catch (UnknownCommandException err) {
+                printResponse(err.getMessage());
+                continue;
+            }
             switch (command) {
                 case Command.ByeCommand c:
                     printResponse("You may leave, but I will be here.");

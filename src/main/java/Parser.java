@@ -1,5 +1,7 @@
+import Exceptions.UnknownCommandException;
+
 public class Parser {
-    public static Command parse(String input) {
+    public static Command parse(String input) throws UnknownCommandException {
         String[] parts = input.split("\\s+", 2);
         String commandType = parts[0];
         switch (commandType) {
@@ -31,7 +33,7 @@ public class Parser {
                 return new Command.AddTaskCommand(new EventTask(name, from, to));
             }
             default:
-                return new Command.AddTaskCommand(new Task(input));
+                throw new UnknownCommandException(String.format("AAAAHHHHHHHHHHHHHHH\nYou can't tell me to '%s'", input));
         }
     }
 }
