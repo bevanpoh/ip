@@ -1,28 +1,37 @@
+enum TaskStatus {
+    DONE("[X]"),
+    NOT_DONE("[ ]");
+
+    private final String icon;
+
+    TaskStatus(String icon) {
+        this.icon = icon;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+}
+
 public class Task {
     private final String name;
-    private boolean isDone = false;
+    private TaskStatus status;
 
     public Task(String name) {
         this.name = name;
+        status = TaskStatus.NOT_DONE;
     }
 
     public void mark() {
-        isDone = true;
+        status = TaskStatus.DONE;
     }
 
     public void unmark() {
-        isDone = false;
+        status = TaskStatus.NOT_DONE;
     }
 
     @Override
     public String toString() {
-        String doneStatus;
-        if (isDone) {
-            doneStatus = "[X]";
-        } else {
-            doneStatus = "[ ]";
-        }
-
-        return String.format("%s %s", doneStatus, name);
+        return String.format("%s %s", status.getIcon(), name);
     }
 }
