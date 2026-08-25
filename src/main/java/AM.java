@@ -36,7 +36,7 @@ public class AM {
             String input = scanner.nextLine();
             Command command;
             try {
-                command = Parser.parse(input);
+                command = CommandParser.parse(input);
             } catch (UnknownCommandException | MissingArgumentException err) {
                 printResponse(err.getMessage());
                 continue;
