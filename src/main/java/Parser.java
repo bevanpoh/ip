@@ -62,6 +62,14 @@ public class Parser {
                 }
                 return new Command.AddTaskCommand(new EventTask(name, from, to));
             }
+            case "delete":
+                int taskIndex;
+                try {
+                    taskIndex = Integer.parseInt(parts[1].trim()) - 1;
+                } catch (ArrayIndexOutOfBoundsException err) {
+                    throw new MissingArgumentException("You messed up the command");
+                }
+                return new Command.DeleteTaskCommand(taskIndex);
             default:
                 throw new UnknownCommandException(String.format("AAAAHHHHHHHHHHHHHHH\nYou can't tell me to '%s'", input));
         }

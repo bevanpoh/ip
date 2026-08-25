@@ -53,4 +53,16 @@ public abstract sealed class Command {
             return task;
         }
     }
+
+    public static final class DeleteTaskCommand extends Command {
+        private final int index;
+
+        public DeleteTaskCommand(int index) {
+            this.index = index;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+    }
 }

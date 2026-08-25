@@ -1,53 +1,60 @@
 import Exceptions.TaskListLengthExceededException;
 
-public class TaskList {
-    private final Task[] tasks;
-    private int task_count;
+import java.util.ArrayList;
 
-    public TaskList(int size) {
-        tasks = new Task[size];
-        task_count = 0;
+public class TaskList {
+    private final ArrayList<Task> tasks;
+
+    public TaskList() {
+        tasks = new ArrayList<>();
     }
 
     public void addTask(Task task) {
-        tasks[task_count++] = task;
+        tasks.add(task);
     }
 
     public void markTask(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= task_count || taskIdx < 0) {
+        if (taskIdx >= tasks.size() || taskIdx < 0) {
             throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
         }
-        tasks[taskIdx].mark();
+        tasks.get(taskIdx).mark();
     }
 
     public void unmarkTask(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= task_count || taskIdx < 0) {
+        if (taskIdx >= tasks.size() || taskIdx < 0) {
             throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
         }
-        tasks[taskIdx].unmark();
+        tasks.get(taskIdx).unmark();
+    }
+
+    public void deleteTask(int taskIdx) throws TaskListLengthExceededException {
+        if (taskIdx >= tasks.size() || taskIdx < 0) {
+            throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
+        }
+        tasks.remove(taskIdx);
     }
 
     public String getTaskString(int taskIdx) throws TaskListLengthExceededException {
-        if (taskIdx >= task_count || taskIdx < 0) {
+        if (taskIdx >= tasks.size() || taskIdx < 0) {
             throw new TaskListLengthExceededException(String.format("Item index '%d' is out of bounds", taskIdx));
         }
-        return tasks[taskIdx].toString();
+        return tasks.get(taskIdx).toString();
     }
 
     public int getLength() {
-        return task_count;
+        return tasks.size();
     }
 
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < task_count; i++) {
+        for (int i = 0; i < tasks.size(); i++) {
             if (i > 0) {
                 result.append("\n");
             }
             result.append(i + 1)
                     .append(". ")
-                    .append(tasks[i]);
+                    .append(tasks.get(i));
         }
         return result.toString();
     }

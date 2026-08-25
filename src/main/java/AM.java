@@ -15,7 +15,7 @@ public class AM {
             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░
             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░
             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓░""";
-    private static final TaskList tasks = new TaskList(100);
+    private static final TaskList tasks = new TaskList();
 
     private static String insertIndent(String msg) {
         return INDENT + msg.replace("\n", "\n" + INDENT);
@@ -72,6 +72,18 @@ public class AM {
                             c.getTask().toString(),
                             tasks.getLength()));
                     break;
+                case Command.DeleteTaskCommand c: {
+                    try {
+                        String toDelete = tasks.getTaskString(c.getIndex());
+                        tasks.deleteTask(c.getIndex());
+                        printResponse(String.format("Deleted:\n%s\nNow you have %d tasks in the list",
+                                toDelete,
+                                tasks.getLength()));
+                    } catch (TaskListLengthExceededException err) {
+                        printResponse(String.format("You don't have task number %d", c.getIndex() + 1));
+                    }
+                    break;
+                }
             }
         }
     }
