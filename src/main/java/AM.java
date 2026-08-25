@@ -36,32 +36,27 @@ public class AM {
 
         while (true) {
             String input = scanner.nextLine();
-            String[] parts = input.split("\\s", 2);
-            String input_command = parts[0];
-            String input_args = parts[1];
-
-            switch (input_command) {
-                case "bye":
+            Command command = Parser.parse(input);
+            switch (command) {
+                case Command.ByeCommand c:
                     printResponse(FAREWELL);
                     return;
-                case "list":
+                case Command.ListCommand c:
                     printResponse(tasks.toString());
                     break;
-                case "mark": {
-                    int taskIndex = Integer.parseInt(input_args) - 1;
-                    tasks.markTask(taskIndex);
-                    printResponse("Marked:", tasks.getTaskString(taskIndex));
+                case Command.MarkCommand c: {
+                    tasks.markTask(c.getIndex());
+                    printResponse("Marked:", tasks.getTaskString(c.getIndex()));
                     break;
                 }
-                case "unmark": {
-                    int taskIndex = Integer.parseInt(input_args) - 1;
-                    tasks.unmarkTask(taskIndex);
-                    printResponse("Unmarked:", tasks.getTaskString(taskIndex));
+                case Command.UnmarkCommand c: {
+                    tasks.unmarkTask(c.getIndex());
+                    printResponse("Unmarked:", tasks.getTaskString(c.getIndex()));
                     break;
                 }
-                default:
-                    tasks.addTask(new Task(input));
-                    printResponse("added: " + input);
+                case Command.AddTaskCommand c:
+                    tasks.addTask(c.getTask());
+                    printResponse("added: " + c.getTask().toString());
                     break;
             }
         }
