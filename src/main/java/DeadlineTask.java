@@ -9,13 +9,13 @@ import java.time.format.ResolverStyle;
 
 public class DeadlineTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
-            DateTimeFormatter.ofPattern("d/M/uuuu HHmm")
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
                     .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter DATE_FORMAT =
-            DateTimeFormatter.ofPattern("d/M/uuuu")
+            DateTimeFormatter.ofPattern("uuuu-MM-dd")
                     .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter DISPLAY_FORMAT =
-            DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
+            DateTimeFormatter.ofPattern("MMM dd yyyy h:mm a");
     private final LocalDateTime by;
 
     public DeadlineTask(String name, LocalDateTime by) {
