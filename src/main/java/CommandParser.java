@@ -1,8 +1,8 @@
-import Exceptions.MissingArgumentException;
+import Exceptions.InvalidCommandException;
 import Exceptions.UnknownCommandException;
 
 public class CommandParser {
-    public static Command parse(String input) throws MissingArgumentException {
+    public static Command parse(String input) {
         String[] parts = input.split("\\s+", 2);
         String commandType = parts[0].trim();
         switch (commandType) {
@@ -15,7 +15,7 @@ public class CommandParser {
                 try {
                     taskIndex = Integer.parseInt(parts[1].trim()) - 1;
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException err) {
-                    throw new MissingArgumentException("You messed up the command");
+                    throw new InvalidCommandException("You messed up the command.");
                 }
                 return new Command.MarkCommand(taskIndex);
             }
@@ -24,7 +24,7 @@ public class CommandParser {
                 try {
                     taskIndex = Integer.parseInt(parts[1].trim()) - 1;
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException err) {
-                    throw new MissingArgumentException("You messed up the command");
+                    throw new InvalidCommandException("You messed up the command.");
                 }
                 return new Command.UnmarkCommand(taskIndex);
             }
@@ -33,7 +33,7 @@ public class CommandParser {
                 try {
                     name = parts[1].trim();
                 } catch (ArrayIndexOutOfBoundsException err) {
-                    throw new MissingArgumentException("You messed up the command");
+                    throw new InvalidCommandException("You messed up the command.");
                 }
                 return new Command.AddTaskCommand(new TodoTask(name));
             }
@@ -45,7 +45,7 @@ public class CommandParser {
                     name = args[0].trim();
                     by = args[1].trim();
                 } catch (ArrayIndexOutOfBoundsException err) {
-                    throw new MissingArgumentException("You messed up the command");
+                    throw new InvalidCommandException("You messed up the command.");
                 }
                 return new Command.AddTaskCommand(new DeadlineTask(name, by));
             }
@@ -58,7 +58,7 @@ public class CommandParser {
                     from = args[1].trim();
                     to = args[2].trim();
                 } catch (ArrayIndexOutOfBoundsException err) {
-                    throw new MissingArgumentException("You messed up the command");
+                    throw new InvalidCommandException("You messed up the command.");
                 }
                 return new Command.AddTaskCommand(new EventTask(name, from, to));
             }
@@ -67,7 +67,7 @@ public class CommandParser {
                 try {
                     taskIndex = Integer.parseInt(parts[1].trim()) - 1;
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException err) {
-                    throw new MissingArgumentException("You messed up the command");
+                    throw new InvalidCommandException("You messed up the command.");
                 }
                 return new Command.DeleteTaskCommand(taskIndex);
             default:

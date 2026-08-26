@@ -1,4 +1,4 @@
-import Exceptions.MissingArgumentException;
+import Exceptions.InvalidCommandException;
 import Exceptions.UnknownCommandException;
 
 import java.util.Scanner;
@@ -36,7 +36,7 @@ public class AM {
             Command command;
             try {
                 command = CommandParser.parse(input);
-            } catch (UnknownCommandException | MissingArgumentException err) {
+            } catch (UnknownCommandException | InvalidCommandException err) {
                 printResponse(err.getMessage());
                 continue;
             }
