@@ -8,11 +8,17 @@ The tests use a fresh application process for each scenario. This is important b
 
 ## 2. Test conventions
 
+Persistence scenarios deliberately reuse the same temporary data directory across two fresh processes to verify saving and loading. Other scenarios should use an isolated working directory so that tests do not share saved tasks.
+
 - Send commands one per line through standard input.
 - End every scenario with `bye` so that the application terminates cleanly.
 - Task numbers in user commands are one-based. Internally, the corresponding list index is zero-based.
 - Each expected list line must preserve order, task type (`[T]`, `[D]`, or `[E]`), status (`[ ]` or `[X]`), task description, and any deadline/event details.
 - Unless a test says otherwise, an invalid command must not change the task list.
+- Run each scenario in an isolated working directory. The expected data file is the relative path `./data/AM.txt`.
+- For first-run tests, ensure `./data/AM.txt` and its parent directory do not exist before starting the process.
+- For persistence tests, inspect both chatbot output and the saved file. A saved task uses one line in the format `T | status | name`, `D | status | name | by`, or `E | status | name | from | to`, where status is `0` or `1`.
+- Start a new process when a test says “restart”, but keep the same isolated data directory so the second process loads the first process's saved state.
 
 ## 3. Concrete UI test commands and expected outputs
 
@@ -311,6 +317,102 @@ You can't tell me to '<input as entered>'
 
 The later `list` command must still run and produce an empty response body. If the project later decides to normalize leading whitespace, blank input, or command case, update this test's expected output and parser requirements together.
 
+### UI-11: Save tasks and reload them after a restart
+
+Run process 1 with:
+
+```text
+todo buy bread
+deadline submit report /by Friday
+event project meeting /from Monday /to Tuesday
+mark 1
+bye
+```
+
+Before starting process 2, verify that `./data/AM.txt` contains exactly:
+
+```text
+T | 1 | buy bread
+D | 0 | submit report | Friday
+E | 0 | project meeting | Monday | Tuesday
+```
+
+Run process 2 with:
+
+```text
+list
+bye
+```
+
+Expected output from `list`:
+
+```text
+1. [T][X] buy bread
+2. [D][ ] submit report (by: Friday)
+3. [E][ ] project meeting (from: Monday to: Tuesday)
+```
+
+The second process must display the same tasks, order, types, details, and completion status saved by the first process.
+
+### UI-12: Create the data directory and file automatically
+
+Start with neither `./data/` nor `./data/AM.txt` present. Run:
+
+```text
+todo buy bread
+bye
+```
+
+The process must exit successfully, create the `data` directory and `AM.txt`, and save the new task. The file must contain:
+
+```text
+T | 0 | buy bread
+```
+
+### UI-13: Save every task-list mutation
+
+Start with a missing data file. Run:
+
+```text
+todo first task
+todo second task
+mark 1
+unmark 1
+delete 2
+bye
+```
+
+The final data file must contain only:
+
+```text
+T | 0 | first task
+```
+
+This verifies that add, mark, unmark, and delete operations are all persisted automatically.
+
+### UI-14: Handle a corrupted data file
+
+Before starting the process, create `./data/AM.txt` containing:
+
+```text
+not a valid task record
+```
+
+Run:
+
+```text
+list
+bye
+```
+
+Expected response body:
+
+```text
+What did you do to my memory?
+```
+
+The application must not enter the normal command loop, must exit successfully, and must not overwrite the corrupted file. The underlying load error should identify the corrupted record and its line number when inspected in logs or a debugger.
+
 ## 4. Acceptance test scenarios
 
 | ID | Priority | Input sequence | Expected result |
@@ -333,6 +435,10 @@ The later `list` command must still run and produce an empty response body. If t
 | CLI-16 | High | Run the complete transcript in Section 5 in a fresh process | Every intermediate list, current response label, count, status transition, type marker, deadline/event detail, and final deletion agrees with the actual UI output documented in Section 3. |
 | CLI-17 | High | `deadline duplicate /by Sunday /by Monday`, `event repeated /from Mon /to 4pm /to 5pm`, `list`, `bye` | Both malformed commands are rejected, the list remains empty, and no structured-task data is lost or silently ignored. |
 | CLI-18 | Medium | `bye` in a fresh process | The complete startup banner, separator lines, indentation, farewell response, and successful process exit are present. |
+| CLI-19 | High | Run UI-11 across two fresh processes | Tasks are saved in the documented line format and reload with the same order, types, details, and statuses. |
+| CLI-20 | High | Run UI-12 with no `data` directory | The directory and data file are created automatically, and the task is saved. |
+| CLI-21 | High | Run UI-13 | Every task-list mutation is persisted; the final file contains exactly the remaining task and status. |
+| CLI-22 | High | Run UI-14 with a malformed data file | `CorruptedDataException` is handled, the memory-error response is shown, the process exits successfully, and the original file is not overwritten. |
 
 ## 5. End-to-end regression scenario based on the examples
 
@@ -401,6 +507,17 @@ Verify that the parser rejects or handles each case according to the intended co
 
 For every rejected input, assert the exception type and verify that the application layer leaves the task list unchanged. For every accepted input, assert the command type and all parsed fields, not just the type.
 
+### Task serialisation/deserialisation checks
+
+Verify that Task.fromSerialised delegates to the correct subtype factory and that each subtype factory reconstructs its own fields and status.
+
+- `T | 0 | buy bread` -> `TodoTask`, not done, name `buy bread`.
+- `T | 1 | buy bread` -> `TodoTask`, done, name `buy bread`.
+- `D | 0 | submit report | Friday` -> `DeadlineTask`, not done, deadline `Friday`.
+- `E | 1 | meeting | Monday | Tuesday` -> `EventTask`, done, from `Monday`, to `Tuesday`.
+
+Verify that malformed records throw CorruptedDataException, including unknown type markers, invalid status values, missing fields, and extra fields. Verify that valid records round-trip: serialising a reconstructed task produces the same line format.
+
 ## 7. Task and `TaskList` unit tests
 
 - A new `Task`, `TodoTask`, `DeadlineTask`, and `EventTask` is not done by default.
@@ -413,9 +530,19 @@ For every rejected input, assert the exception type and verify that the applicat
 - `deleteTask` removes the selected task, decreases length by one, and shifts later tasks left.
 - Accessing an invalid list index fails predictably; the CLI should convert that failure into its user-facing error rather than terminating.
 
+### `Storage` unit tests
+
+- Constructing `Storage` with `./data/AM.txt` uses a relative, OS-independent path.
+- `load()` returns an empty `TaskList` when the file does not exist.
+- `save()` creates missing parent directories and the data file.
+- `save()` writes one serialised line per task and replaces stale file contents.
+- `load()` reconstructs todo, deadline, and event tasks with their original order and completion status.
+- `load()` throws `CorruptedDataException` for malformed records and identifies the affected line number.
+- A failed load must not replace the corrupted file with an empty or partially loaded task list.
+
 ## 8. Test execution and evidence
 
-Use Java 25 for compilation and execution. Keep the input script, captured output, exit status, and test result together as evidence for each acceptance run. A regression run should include all High-priority cases and the complete transcript scenario; Medium-priority cases should run whenever parsing or user-facing messages change.
+Use Java 25 for compilation and execution. Keep the input script, captured output, exit status, saved data-file contents, and test result together as evidence for each acceptance run. A regression run should include all High-priority cases and the complete transcript scenario; Medium-priority cases should run whenever parsing, persistence, or user-facing messages change.
 
 For failures, record:
 
@@ -424,8 +551,9 @@ For failures, record:
 3. expected semantic output;
 4. actual output;
 5. whether the task list changed unexpectedly;
-6. the commit or revision being assessed.
+6. the saved data-file contents before and after the operation, when persistence is in scope;
+7. the commit or revision being assessed.
 
 ## 9. Assessment rule
 
-The CLI passes this plan only if all High-priority tests pass, including the full-console envelope and repeated-separator checks, the complete transcript scenario passes, and no test reveals data loss, incorrect numbering, cross-task mutation, malformed structured-task output, or an uncaught error that terminates the application unexpectedly.
+The CLI passes this plan only if all High-priority tests pass, including the full-console envelope, repeated-separator checks, and persistence scenarios. The complete transcript scenario must pass, tasks must survive a restart with their order and status intact, missing data files/directories must be handled, and corrupted data must produce the handled memory-error response without being overwritten. No test may reveal data loss, incorrect numbering, cross-task mutation, malformed structured-task output, or an uncaught error that terminates the application unexpectedly.
