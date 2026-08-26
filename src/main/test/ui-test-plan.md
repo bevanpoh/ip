@@ -1,559 +1,508 @@
-# AM CLI Test Plan
+# AM CLI UI Test Plan
 
-## 1. Purpose
+## 1. Purpose and scope
 
-This document defines repeatable tests for the task-management CLI. The tests are intended to verify the behaviours shown in the requirements examples and to detect regressions when commands, parsing, task formatting, or list operations change.
+This plan documents black-box tests for the current command-line implementation of AM. It covers the console envelope, command parsing, task-list operations, date handling, persistence, restart behavior, and corrupted-data handling.
 
-The tests use a fresh application process for each scenario. This is important because tasks are stored in memory and a process that is reused would carry state from one test into the next.
+The source tree currently contains Java source files and this test plan, but no automated UI-test runner or build configuration. Execute the scenarios manually or from an external harness against a compiled copy of the application.
 
-## 2. Test conventions
+## 2. Current implementation contract
 
-Persistence scenarios deliberately reuse the same temporary data directory across two fresh processes to verify saving and loading. Other scenarios should use an isolated working directory so that tests do not share saved tasks.
+- Use Java 25 to compile and run the application.
+- The entry point is AM; it reads one command per standard-input line.
+- Each scenario should end with bye. EOF without bye is not a supported test path because the loop calls Scanner.nextLine().
+- Start a fresh process for every scenario. Persistence scenarios intentionally use the same isolated working directory across two processes.
+- The application uses the relative path ./data/AM.txt.
+- User task numbers are one-based; the parser converts them to zero-based indexes.
+- Every response is printed between 65-underscore separator lines. Response text is indented by four spaces, including every line of a multi-line response.
+- Startup contains the seven-line AM banner, My name is AM., and What do you want?. Farewell is You may leave, but I will be here..
+- An empty list or past response has an empty body between the separators.
 
-- Send commands one per line through standard input.
-- End every scenario with `bye` so that the application terminates cleanly.
-- Task numbers in user commands are one-based. Internally, the corresponding list index is zero-based.
-- Each expected list line must preserve order, task type (`[T]`, `[D]`, or `[E]`), status (`[ ]` or `[X]`), task description, and any deadline/event details.
-- Unless a test says otherwise, an invalid command must not change the task list.
-- Run each scenario in an isolated working directory. The expected data file is the relative path `./data/AM.txt`.
-- For first-run tests, ensure `./data/AM.txt` and its parent directory do not exist before starting the process.
-- For persistence tests, inspect both chatbot output and the saved file. A saved task uses one line in the format `T | status | name`, `D | status | name | by`, or `E | status | name | from | to`, where status is `0` or `1`.
-- Start a new process when a test says “restart”, but keep the same isolated data directory so the second process loads the first process's saved state.
+### Supported commands
 
-## 3. Concrete UI test commands and expected outputs
+| Command | Current behavior |
+| --- | --- |
+| todo <name> | Adds a todo task. The name is trimmed and may contain spaces. |
+| deadline <name> /by <date-or-date-time> | Adds a deadline task. |
+| event <name> /from <date-or-date-time> /to <date-or-date-time> | Adds an event task. |
+| list | Displays all tasks in insertion order. |
+| past | Displays deadline/event tasks whose end time is before LocalDateTime.now(). Todo tasks are never past. |
+| mark <number> | Marks the selected task done. |
+| unmark <number> | Marks the selected task not done. |
+| delete <number> | Removes the selected task. |
+| bye | Prints the farewell response and terminates. |
 
-The following are black-box tests. Start a fresh process for each case, provide the commands exactly as shown, and compare the response text between separator lines with the expected output. The expected-output blocks show semantic response bodies, while the full-console checks in UI-00 verify that the startup banner, separator lines, and four-space indentation are still present. The expected output below follows the current implementation, including its response labels and spacing, except where a test explicitly defines intended rejection of malformed input.
+### Date formats and display
 
-### UI-00: Verify the full console envelope
+Structured task values accept either:
 
-Commands:
+- yyyy-MM-dd, meaning 11:59 pm for a deadline, midnight for an event start, and 11:59 pm for an event end; or
+- yyyy-MM-dd HHmm in 24-hour time, such as 2026-08-28 1400.
 
-```text
+Dates display as MMM dd yyyy h:mm a, such as Aug 28 2026 2:00 pm. Invalid date values produce When is that? and do not add a task.
+
+### Persistence format
+
+Each saved task occupies one line:
+
+~~~
+T | 0-or-1 | name
+D | 0-or-1 | name | yyyy-MM-ddTHH:mm
+E | 0-or-1 | name | yyyy-MM-ddTHH:mm | yyyy-MM-ddTHH:mm
+~~~
+
+The data directory and file are created on the first successful mutation that calls Storage.save(). Starting with no data file and only issuing list/bye does not create the file.
+
+## 3. Console UI scenarios
+
+For each scenario, compare response bodies and verify the process exit status. Unless stated otherwise, begin with no data directory and no ./data/AM.txt.
+
+### UI-00: Verify startup and farewell envelope
+
+Input:
+
+~~~
 bye
-```
+~~~
 
-Expected full-console structure:
+Verify this structure:
 
-```text
-<separator line>
-<the seven-line AM banner>
-My name is AM.
-What do you want?
-<separator line>
-<separator line>
-You may leave, but I will be here.
-<separator line>
-```
+~~~
+<separator>
+<seven indented banner lines>
+    My name is AM.
+    What do you want?
+<separator>
+<separator>
+    You may leave, but I will be here.
+<separator>
+~~~
 
-The exact banner characters, separator characters, and four-space indentation must be preserved. The process must exit successfully after the farewell response. This is a formatting check on the complete console output, not only on the response body.
+The banner characters, separator length, four-space indentation, response ordering, and successful exit must be preserved.
 
 ### UI-01: List an empty task list
 
-Commands:
+Input:
 
-```text
+~~~
 list
 bye
-```
+~~~
 
-Expected output from `list`:
+The list response body is empty. The farewell response is You may leave, but I will be here..
 
-```text
-<empty response body>
-```
+### UI-02: Add and list a todo
 
-Expected output from `bye`:
+Input:
 
-```text
-You may leave, but I will be here.
-```
-
-The process must then exit successfully.
-
-### UI-02: Add and list a todo task
-
-Commands:
-
-```text
+~~~
 todo buy bread
 list
 bye
-```
+~~~
 
-Expected output from `todo buy bread`:
+Expected bodies:
 
-```text
+~~~
 added: [T][ ] buy bread
 Now you have 1 tasks in the list
-```
+~~~
 
-Expected output from `list`:
-
-```text
+~~~
 1. [T][ ] buy bread
-```
+~~~
 
 ### UI-03: Mark and unmark a task
 
-Commands:
+Input:
 
-```text
+~~~
 todo return book
 mark 1
 unmark 1
 list
 bye
-```
+~~~
 
-Expected output from `mark 1`:
+Expected state-change bodies:
 
-```text
+~~~
 Marked:
 [T][X] return book
-```
+~~~
 
-Expected output from `unmark 1`:
-
-```text
+~~~
 Unmarked:
 [T][ ] return book
-```
+~~~
 
-Expected output from the final `list`:
+The final list contains exactly 1. [T][ ] return book.
 
-```text
-1. [T][ ] return book
-```
+### UI-04: Add structured tasks with supported dates
 
-### UI-04: Add deadline and event tasks
+Input:
 
-Commands:
-
-```text
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+~~~
+deadline submit report /by 2026-08-28
+event project meeting /from 2026-08-28 1400 /to 2026-08-28 1600
 list
 bye
-```
+~~~
 
-Expected output from the deadline command:
+Expected bodies:
 
-```text
-added: [D][ ] return book (by: Sunday)
+~~~
+added: [D][ ] submit report (by: Aug 28 2026 11:59 pm)
 Now you have 1 tasks in the list
-```
+~~~
 
-Expected output from the event command:
-
-```text
-added: [E][ ] project meeting (from: Mon 2pm to: 4pm)
+~~~
+added: [E][ ] project meeting (from: Aug 28 2026 2:00 pm to: Aug 28 2026 4:00 pm)
 Now you have 2 tasks in the list
-```
+~~~
 
-Expected output from `list`:
+~~~
+1. [D][ ] submit report (by: Aug 28 2026 11:59 pm)
+2. [E][ ] project meeting (from: Aug 28 2026 2:00 pm to: Aug 28 2026 4:00 pm)
+~~~
 
-```text
-1. [D][ ] return book (by: Sunday)
-2. [E][ ] project meeting (from: Mon 2pm to: 4pm)
-```
+### UI-05: Delete and renumber tasks
 
-### UI-05: Delete a task and renumber the remaining tasks
+Input:
 
-Commands:
-
-```text
+~~~
 todo read book
 todo return book
 todo buy bread
 delete 2
 list
 bye
-```
+~~~
 
-Expected output from `delete 2`:
+Delete response:
 
-```text
+~~~
 Deleted:
 [T][ ] return book
 Now you have 2 tasks in the list
-```
+~~~
 
-Expected output from `list`:
+Final list:
 
-```text
+~~~
 1. [T][ ] read book
 2. [T][ ] buy bread
-```
+~~~
 
-The deleted task must not appear, and the remaining tasks must be numbered consecutively.
+### UI-06: Complete mixed-task workflow
 
-### UI-06: Run a complete mixed-task workflow
+Input:
 
-Commands:
-
-```text
+~~~
 todo read book
 todo return book
 todo buy bread
 mark 1
 todo borrow book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+deadline submit report /by 2026-08-28
+event project meeting /from 2026-08-28 1400 /to 2026-08-28 1600
 unmark 1
 delete 3
 list
 bye
-```
+~~~
 
-Expected output from the final `list`:
+Final list:
 
-```text
+~~~
 1. [T][ ] read book
 2. [T][ ] return book
 3. [T][ ] borrow book
-4. [D][ ] return book (by: Sunday)
-5. [E][ ] project meeting (from: Mon 2pm to: 4pm)
-```
+4. [D][ ] submit report (by: Aug 28 2026 11:59 pm)
+5. [E][ ] project meeting (from: Aug 28 2026 2:00 pm to: Aug 28 2026 4:00 pm)
+~~~
 
-This workflow verifies insertion order, all three task formats, mark/unmark state changes, deletion, and renumbering. The final count must be 5.
+This verifies insertion order, all task types, status transitions, deletion, and renumbering.
 
-### UI-07: Reject invalid task numbers without changing the list
+### UI-07: Display past tasks
 
-Commands:
+Input:
 
-```text
+~~~
+todo ordinary task
+deadline old deadline /by 2000-01-01
+event old event /from 2000-01-01 /to 2000-01-02
+past
+bye
+~~~
+
+The past response is:
+
+~~~
+2. [D][ ] old deadline (by: Jan 01 2000 11:59 pm)
+3. [E][ ] old event (from: Jan 01 2000 12:00 am to: Jan 02 2000 11:59 pm)
+~~~
+
+The original task numbers are retained; the todo is not shown.
+
+### UI-08: Reject invalid task numbers
+
+Input:
+
+~~~
 todo read book
 mark 2
 unmark 0
 delete 3
 list
 bye
-```
+~~~
 
-Expected output for the invalid task-number commands:
+The invalid operations return:
 
-```text
+~~~
 You don't have task number 2
 You don't have task number 0
 You don't have task number 3
-```
+~~~
 
-Expected output from `list`:
+The list remains:
 
-```text
+~~~
 1. [T][ ] read book
-```
+~~~
 
-The invalid operations must not mark, unmark, delete, or duplicate the task.
+### UI-09: Reject missing arguments, duplicate markers, and invalid dates
 
-### UI-08: Reject an unknown command and continue
+Input:
 
-Commands:
+~~~
+mark
+unmark
+delete
+todo
+deadline report
+event meeting
+deadline report /by 2026-08-28 /by 2026-08-29
+event meeting /from 2026-08-28 /to
+deadline report /by Sunday
+list
+bye
+~~~
 
-```text
+The first eight malformed command lines each produce You messed up the command. The final malformed date produces When is that?. No task is added, list has an empty body, and the application continues after each error.
+
+### UI-10: Unknown commands, case, and whitespace
+
+Input:
+
+~~~
 wat
-list
-bye
-```
-
-Expected output from `wat`:
-
-```text
-AAAAHHHHHHHHHHHHHHH
-You can't tell me to 'wat'
-```
-
-Expected output from `list`:
-
-```text
-<empty response body>
-```
-
-The application must continue running after the error and must exit only after `bye`.
-
-### UI-09: Reject repeated structured-task separators
-
-Commands:
-
-```text
-deadline duplicate /by Sunday /by Monday
-event repeated /from Mon /to 4pm /to 5pm
-list
-bye
-```
-
-Expected output from each malformed structured command:
-
-```text
-You messed up the command.
-```
-
-Expected output from `list`:
-
-```text
-<empty response body>
-```
-
-The parser must reject repeated `/by`, `/from`, or `/to` separators instead of preserving extra text in a deadline or silently discarding an event field.
-
-### UI-10: Define whitespace and command-case behaviour
-
-Commands:
-
-```text
-  list
 LIST
+  list
 
 list
 bye
-```
+~~~
 
-The current command contract is strict: leading whitespace, different command case, and an empty line are treated as unknown commands. Under that contract, the first three inputs each produce:
+The first four input lines are treated as unknown commands. Their bodies have this form:
 
-```text
+~~~
 AAAAHHHHHHHHHHHHHHH
-You can't tell me to '<input as entered>'
-```
+You can't tell me to '<the exact input line>'
+~~~
 
-The later `list` command must still run and produce an empty response body. If the project later decides to normalize leading whitespace, blank input, or command case, update this test's expected output and parser requirements together.
+The later list command is accepted and has an empty body. Commands are case-sensitive. Leading whitespace makes a command unknown; trailing whitespace on a no-argument command is ignored by the current split logic.
 
-### UI-11: Save tasks and reload them after a restart
+### UI-11: Save and reload after restart
 
-Run process 1 with:
+Run process 1:
 
-```text
+~~~
 todo buy bread
-deadline submit report /by Friday
-event project meeting /from Monday /to Tuesday
+deadline submit report /by 2026-08-28
+event project meeting /from 2026-08-28 1400 /to 2026-08-28 1600
 mark 1
 bye
-```
+~~~
 
-Before starting process 2, verify that `./data/AM.txt` contains exactly:
+Before process 2, verify ./data/AM.txt contains exactly:
 
-```text
+~~~
 T | 1 | buy bread
-D | 0 | submit report | Friday
-E | 0 | project meeting | Monday | Tuesday
-```
+D | 0 | submit report | 2026-08-28T23:59
+E | 0 | project meeting | 2026-08-28T14:00 | 2026-08-28T16:00
+~~~
 
-Run process 2 with:
+Run process 2:
 
-```text
+~~~
 list
 bye
-```
+~~~
 
-Expected output from `list`:
+Expected list:
 
-```text
+~~~
 1. [T][X] buy bread
-2. [D][ ] submit report (by: Friday)
-3. [E][ ] project meeting (from: Monday to: Tuesday)
-```
+2. [D][ ] submit report (by: Aug 28 2026 11:59 pm)
+3. [E][ ] project meeting (from: Aug 28 2026 2:00 pm to: Aug 28 2026 4:00 pm)
+~~~
 
-The second process must display the same tasks, order, types, details, and completion status saved by the first process.
+### UI-12: Create the data directory and file
 
-### UI-12: Create the data directory and file automatically
+Start without ./data/ and run:
 
-Start with neither `./data/` nor `./data/AM.txt` present. Run:
-
-```text
+~~~
 todo buy bread
 bye
-```
+~~~
 
-The process must exit successfully, create the `data` directory and `AM.txt`, and save the new task. The file must contain:
+Verify successful exit, creation of data/AM.txt, and:
 
-```text
+~~~
 T | 0 | buy bread
-```
+~~~
 
-### UI-13: Save every task-list mutation
+### UI-13: Persist every mutation
 
-Start with a missing data file. Run:
+Run:
 
-```text
+~~~
 todo first task
 todo second task
 mark 1
 unmark 1
 delete 2
 bye
-```
+~~~
 
-The final data file must contain only:
+The final file contains only:
 
-```text
+~~~
 T | 0 | first task
-```
+~~~
 
-This verifies that add, mark, unmark, and delete operations are all persisted automatically.
+### UI-14: Handle an unknown saved record
 
-### UI-14: Handle a corrupted data file
+Create ./data/AM.txt containing:
 
-Before starting the process, create `./data/AM.txt` containing:
-
-```text
+~~~
 not a valid task record
-```
+~~~
 
-Run:
+Start the application. It prints only the handled body What did you do to my memory?, does not print the startup banner or enter the command loop, exits successfully, and leaves the file unchanged. Storage.load() should report the affected line number in the exception cause when inspected by a unit test or debugger.
 
-```text
+### UI-15: Reject repeated structured markers
+
+Input:
+
+~~~
+deadline duplicate /by 2026-08-28 /by 2026-08-29
+event repeated /from 2026-08-28 /to 2026-08-28 1600 /to 2026-08-28 1700
 list
 bye
-```
+~~~
 
-Expected response body:
+Both structured commands return You messed up the command. The list remains empty. This specifically tests repeated /by or /to; the current parser does not reject every unrecognised slash marker.
 
-```text
-What did you do to my memory?
-```
+## 4. Acceptance test matrix
 
-The application must not enter the normal command loop, must exit successfully, and must not overwrite the corrupted file. The underlying load error should identify the corrupted record and its line number when inspected in logs or a debugger.
-
-## 4. Acceptance test scenarios
-
-| ID | Priority | Input sequence | Expected result |
+| ID | Priority | Scenario | Pass condition |
 | --- | --- | --- | --- |
-| CLI-01 | High | `list`, `bye` | The list response is empty for a new process. No task is displayed and the program exits after `bye`. |
-| CLI-02 | High | `todo buy bread`, `list`, `bye` | A todo task is added. The confirmation identifies `[T][ ] buy bread`, reports `Now you have 1 tasks in the list`, and `list` shows it as item 1 with the current `1. ` spacing. |
-| CLI-03 | High | `todo read book`, `todo return book`, `todo buy bread`, `list`, `bye` | Three tasks appear in insertion order as items 1–3, each with `[T][ ]`. The reported count is 3. |
-| CLI-04 | High | `todo return book`, `mark 1`, `list`, `bye` | The `Marked:` response shows `[T][X] return book`; the subsequent list also shows the task as done. |
-| CLI-05 | High | `todo return book`, `mark 1`, `unmark 1`, `list`, `bye` | The task changes back to `[T][ ] return book`. It is not removed or duplicated. |
-| CLI-06 | High | `todo return book`, `deadline return book /by Sunday`, `list`, `bye` | The deadline task is added as `[D][ ] return book (by: Sunday)`. The deadline text is preserved exactly after trimming surrounding whitespace. |
-| CLI-07 | High | `event project meeting /from Mon 2pm /to 4pm`, `list`, `bye` | The event task is added as `[E][ ] project meeting (from: Mon 2pm to: 4pm)`. Both time fields are preserved and displayed in the correct positions. |
-| CLI-08 | High | `todo read book`, `todo return book`, `todo buy bread`, `delete 2`, `list`, `bye` | The `Deleted:` response identifies `return book`, reports `Now you have 2 tasks in the list`, and `list` shows `read book` as item 1 and `buy bread` as item 2. No stale item 3 remains. |
-| CLI-09 | High | Add three tasks, then `mark 2`, `unmark 2`, `delete 1`, `list`, `bye` | Every operation affects the requested one-based item. After deletion, the remaining task is renumbered from item 2 to item 1, and its status is unchanged. |
-| CLI-10 | High | `todo read book`, `mark 2`, `unmark 0`, `delete 3`, `list`, `bye` | Each invalid index produces an error identifying the requested task number. The original task remains present and not done. |
-| CLI-11 | High | `mark`, `unmark`, `delete`, `todo`, `deadline return book`, `event meeting`, `bye` | Each command missing a required argument produces the missing-argument error. No malformed task is added and the program continues accepting commands. |
-| CLI-12 | High | `deadline return book /by Sunday`, `event meeting /from Mon 2pm`, `event meeting /to 4pm`, `list`, `bye` | Each malformed deadline/event command is rejected. No partial deadline/event task is added. |
-| CLI-13 | Medium | `wat`, `list`, `bye` | The unknown-command error identifies the unrecognised input. The application remains alive and the list is still empty. |
-| CLI-14 | Medium | `todo read book`, `mark 1`, `mark 1`, `unmark 1`, `unmark 1`, `list`, `bye` | Repeating mark/unmark is safe and idempotent. The final task is shown once as `[T][ ] read book`. |
-| CLI-15 | Medium | `todo read book`, `todo return book`, `mark 1`, `deadline return book /by Sunday`, `event project meeting /from Mon 2pm /to 4pm`, `list`, `bye` | The mixed list contains the correct three task types, preserves insertion order, and shows only item 1 as done. |
-| CLI-16 | High | Run the complete transcript in Section 5 in a fresh process | Every intermediate list, current response label, count, status transition, type marker, deadline/event detail, and final deletion agrees with the actual UI output documented in Section 3. |
-| CLI-17 | High | `deadline duplicate /by Sunday /by Monday`, `event repeated /from Mon /to 4pm /to 5pm`, `list`, `bye` | Both malformed commands are rejected, the list remains empty, and no structured-task data is lost or silently ignored. |
-| CLI-18 | Medium | `bye` in a fresh process | The complete startup banner, separator lines, indentation, farewell response, and successful process exit are present. |
-| CLI-19 | High | Run UI-11 across two fresh processes | Tasks are saved in the documented line format and reload with the same order, types, details, and statuses. |
-| CLI-20 | High | Run UI-12 with no `data` directory | The directory and data file are created automatically, and the task is saved. |
-| CLI-21 | High | Run UI-13 | Every task-list mutation is persisted; the final file contains exactly the remaining task and status. |
-| CLI-22 | High | Run UI-14 with a malformed data file | `CorruptedDataException` is handled, the memory-error response is shown, the process exits successfully, and the original file is not overwritten. |
+| CLI-01 | High | UI-00 | Startup and farewell envelopes have the expected separators, indentation, banner, and successful exit. |
+| CLI-02 | High | UI-01 | A new process lists no tasks and exits after bye. |
+| CLI-03 | High | UI-02 | Todo creation, count, marker, and numbering are correct. |
+| CLI-04 | High | UI-03 | Mark and unmark affect only the selected task. |
+| CLI-05 | High | UI-04 | Date-only and date-time structured inputs are accepted and displayed in the current format. |
+| CLI-06 | High | UI-05 | Deletion removes the selected task and renumbers later tasks. |
+| CLI-07 | High | UI-06 | The mixed workflow preserves order, types, status, details, and count. |
+| CLI-08 | Medium | UI-07 | Past returns only expired deadline/event tasks with original list numbers. |
+| CLI-09 | High | UI-08 | Invalid indexes produce errors and do not mutate the list. |
+| CLI-10 | High | UI-09 | Missing arguments, duplicate markers, and invalid dates are rejected without adding tasks. |
+| CLI-11 | Medium | UI-10 | Unknown input does not terminate the process; supported commands continue to work. |
+| CLI-12 | High | UI-11 | Tasks survive restart with order, type, details, and completion status intact. |
+| CLI-13 | High | UI-12 | Missing parent directories and data files are created on save. |
+| CLI-14 | High | UI-13 | Add, mark, unmark, and delete mutations are persisted. |
+| CLI-15 | High | UI-14 | A corrupted record is handled without overwriting the file. |
+| CLI-16 | Medium | UI-15 | Duplicate structured markers are rejected and do not mutate the list. |
 
-## 5. End-to-end regression scenario based on the examples
+## 5. Parser and model checks
 
-Run the following as one input script. The expected state is stated after each command so that a failure can be localized.
+These checks can be implemented directly against CommandParser.parse, Task, and TaskList without launching the CLI.
 
-```text
-todo read book
-todo return book
-todo buy bread
-list
-mark 2
-unmark 2
-todo borrow book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
-list
-delete 3
-list
-bye
-```
+### Parser: accepted inputs
 
-Expected semantic checkpoints:
-
-1. After the first three commands, the list has three not-done todo tasks in insertion order.
-2. `list` displays `read book`, `return book`, and `buy bread` as items 1–3.
-3. `mark 2` changes only `return book` to done.
-4. `unmark 2` changes only `return book` back to not done.
-5. `todo borrow book` adds a fourth task and reports the new count.
-6. The deadline and event commands add correctly formatted `[D]` and `[E]` tasks, including their details.
-7. The next `list` contains six tasks in insertion order, with all tasks not done.
-8. `delete 3` removes `buy bread`, reports the removed task, and reports five remaining tasks.
-9. The final `list` contains five tasks and renumbers the later tasks consecutively.
-10. `bye` prints the farewell response and exits with a successful process status.
-
-The examples in the requirements show some pre-existing tasks and counts that are not created in the visible command sequence. For an automated test, use the explicit fixture above and assert the resulting count from that fixture rather than relying on those illustrative counts.
-
-## 6. Parser/unit test matrix
-
-These checks can be implemented against `CommandParser.parse` without launching the CLI.
-
-### Valid commands
-
-| Input | Expected parsed command/data |
+| Input | Expected result |
 | --- | --- |
-| `bye` | `ByeCommand` |
-| `list` | `ListCommand` |
-| `mark 2` | `MarkCommand` with internal index 1 |
-| `unmark 2` | `UnmarkCommand` with internal index 1 |
-| `delete 2` | `DeleteTaskCommand` with internal index 1 |
-| `todo borrow book` | `AddTaskCommand` containing a todo named `borrow book` |
-| `deadline return book /by Sunday` | `AddTaskCommand` containing the name and deadline separately |
-| `event project meeting /from Mon 2pm /to 4pm` | `AddTaskCommand` containing the name, start, and end separately |
+| bye | ByeCommand |
+| list | ListCommand |
+| past | PastCommand |
+| mark 2 | MarkCommand, internal index 1 |
+| unmark 2 | UnmarkCommand, internal index 1 |
+| delete 2 | DeleteTaskCommand, internal index 1 |
+| todo borrow book | AddTaskCommand with a TodoTask named borrow book |
+| deadline submit report /by 2026-08-28 | AddTaskCommand with deadline 2026-08-28T23:59 |
+| event meeting /from 2026-08-28 1400 /to 2026-08-28 1600 | AddTaskCommand with the expected two LocalDateTime values |
 
-### Invalid or boundary inputs
+### Parser: rejected and boundary inputs
 
-Verify that the parser rejects or handles each case according to the intended contract:
+Verify the exception type and message for:
 
-- missing arguments: `mark`, `unmark`, `delete`, `todo`, `deadline`, `event`;
-- non-numeric indices: `mark abc`, `unmark 1.5`, `delete two`;
-- malformed structured commands: missing `/by`, `/from`, or `/to`;
-- extra separators or repeated separators in deadline/event commands must be rejected without creating a task;
-- leading whitespace, trailing whitespace, empty input, and multiple spaces between command parts must follow the explicit command-normalization contract;
-- empty input;
-- unknown command names and command names with different case, if commands are intended to be case-sensitive;
-- index `0`, negative indices, and very large indices.
+- missing arguments: mark, unmark, delete, todo, deadline, and event;
+- non-numeric indexes such as mark abc, unmark 1.5, and delete two;
+- missing or repeated /by, /from, and /to values;
+- invalid dates such as deadline report /by Sunday;
+- unknown names, different command case, leading whitespace, and empty input.
 
-For every rejected input, assert the exception type and verify that the application layer leaves the task list unchanged. For every accepted input, assert the command type and all parsed fields, not just the type.
+The current parser accepts numeric values such as 0 and -1 as commands and leaves range validation to TaskList/AM. It accepts trailing whitespace for no-argument commands and trims task arguments. It does not validate that a structured-task name is non-empty, and unrecognised slash markers can be ignored if required markers are present. Test these as compatibility behavior or change them deliberately with corresponding UI updates.
 
-### Task serialisation/deserialisation checks
+### Task serialization
 
-Verify that Task.fromSerialised delegates to the correct subtype factory and that each subtype factory reconstructs its own fields and status.
+Verify delegation and round trips for:
 
-- `T | 0 | buy bread` -> `TodoTask`, not done, name `buy bread`.
-- `T | 1 | buy bread` -> `TodoTask`, done, name `buy bread`.
-- `D | 0 | submit report | Friday` -> `DeadlineTask`, not done, deadline `Friday`.
-- `E | 1 | meeting | Monday | Tuesday` -> `EventTask`, done, from `Monday`, to `Tuesday`.
+- T | 0 | buy bread -> unfinished TodoTask;
+- T | 1 | buy bread -> finished TodoTask;
+- D | 0 | submit report | 2026-08-28T23:59 -> unfinished DeadlineTask;
+- E | 1 | meeting | 2026-08-28T14:00 | 2026-08-28T16:00 -> finished EventTask.
 
-Verify that malformed records throw CorruptedDataException, including unknown type markers, invalid status values, missing fields, and extra fields. Verify that valid records round-trip: serialising a reconstructed task produces the same line format.
+Unknown type markers, invalid status values, missing fields, and extra fields should throw CorruptedDataException. Valid tasks should serialize back to the documented line format.
 
-## 7. Task and `TaskList` unit tests
+### Task, TaskList, and Storage
 
-- A new `Task`, `TodoTask`, `DeadlineTask`, and `EventTask` is not done by default.
-- `mark()` changes status to done; `unmark()` changes it to not done.
-- Each task's `toString()` contains the correct type marker, status marker, name, and structured details.
-- A new `TaskList` has length 0 and an empty string representation.
-- `addTask` appends and increases length by one.
-- `getTask` returns tasks in insertion order.
-- `markTask` and `unmarkTask` affect only the selected task.
-- `deleteTask` removes the selected task, decreases length by one, and shifts later tasks left.
-- Accessing an invalid list index fails predictably; the CLI should convert that failure into its user-facing error rather than terminating.
+- New tasks are not done by default; mark/unmark are idempotent.
+- toString() uses the correct type/status markers, name, and structured details.
+- A new TaskList has length zero and an empty string representation.
+- addTask appends; getTask preserves order; deleteTask removes and shifts later tasks.
+- markTask, unmarkTask, and deleteTask use zero-based indexes and throw IndexOutOfBoundsException for invalid indexes.
+- getPastTasks excludes todo tasks and retains original one-based numbers.
+- Storage.load() returns an empty list for a missing file.
+- Storage.save() creates parent directories, creates/truncates the file, and writes one serialized line per task.
+- Load/save preserves subtype, order, fields, and completion status.
+- Malformed type/status/field-count records become CorruptedDataException with the affected line number.
+- A failed load does not save a replacement file.
 
-### `Storage` unit tests
+## 6. Known current limitations to track
 
-- Constructing `Storage` with `./data/AM.txt` uses a relative, OS-independent path.
-- `load()` returns an empty `TaskList` when the file does not exist.
-- `save()` creates missing parent directories and the data file.
-- `save()` writes one serialised line per task and replaces stale file contents.
-- `load()` reconstructs todo, deadline, and event tasks with their original order and completion status.
-- `load()` throws `CorruptedDataException` for malformed records and identifies the affected line number.
-- A failed load must not replace the corrupted file with an empty or partially loaded task list.
+These are observations about the current implementation, not additional pass conditions:
 
-## 8. Test execution and evidence
+1. DeadlineTask.fromSerialised and EventTask.fromSerialised do not wrap an invalid serialized timestamp in CorruptedDataException. Such a line can escape the handled-memory path as an uncaught DateTimeParseException.
+2. The parser does not normalize leading whitespace or command case.
+3. The parser permits some malformed structured-task names and ignores unrecognised slash markers when required markers are still present.
+4. The application saves after each successful add, mark, unmark, and delete, but does not create data/AM.txt merely by starting or listing an empty list.
 
-Use Java 25 for compilation and execution. Keep the input script, captured output, exit status, saved data-file contents, and test result together as evidence for each acceptance run. A regression run should include all High-priority cases and the complete transcript scenario; Medium-priority cases should run whenever parsing, persistence, or user-facing messages change.
+Add a regression test for each limitation if it is later fixed, and update the expected UI behavior at the same time.
 
-For failures, record:
+## 7. Test execution and evidence
 
-1. test ID;
-2. exact input;
-3. expected semantic output;
-4. actual output;
-5. whether the task list changed unexpectedly;
-6. the saved data-file contents before and after the operation, when persistence is in scope;
-7. the commit or revision being assessed.
+Compile with Java 25 from the project directory. For this source-only checkout, an equivalent PowerShell session is:
 
-## 9. Assessment rule
+~~~powershell
+New-Item -ItemType Directory -Force out | Out-Null
+javac -d out (Get-ChildItem -Recurse java -Filter *.java | ForEach-Object FullName)
+java -cp out AM
+~~~
 
-The CLI passes this plan only if all High-priority tests pass, including the full-console envelope, repeated-separator checks, and persistence scenarios. The complete transcript scenario must pass, tasks must survive a restart with their order and status intact, missing data files/directories must be handled, and corrupted data must produce the handled memory-error response without being overwritten. No test may reveal data loss, incorrect numbering, cross-task mutation, malformed structured-task output, or an uncaught error that terminates the application unexpectedly.
+Run each scenario in an isolated working directory. Retain the exact input script, captured output and exit status, data/AM.txt when persistence is in scope, the source revision, and any observed list mutation after rejected commands.
+
+All High-priority scenarios should pass before release. Re-run Medium-priority scenarios whenever parser normalization, date formatting, persistence, or user-facing messages change.
