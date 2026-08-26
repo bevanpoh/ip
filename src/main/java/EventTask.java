@@ -1,16 +1,36 @@
 import Exceptions.CorruptedDataException;
 
-public class EventTask extends Task {
-    private final String from;
-    private final String to;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
-    public EventTask(String name, String from, String to) {
+public class EventTask extends Task {
+    private static final DateTimeFormatter INPUT_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
+                    .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd")
+                    .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM dd yyyy h:mm a");
+    private final LocalDateTime from;
+    private final LocalDateTime to;
+
+    public EventTask(String name, LocalDateTime from, LocalDateTime to) {
         super(name);
         this.from = from;
         this.to = to;
     }
 
-    private EventTask(String name, String from, String to, boolean done) {
+    public EventTask(String name, String from, String to) {
+        this(name, parseDateTime(from, LocalTime.MIDNIGHT),
+                parseDateTime(to, LocalTime.of(23, 59)));
+    }
+
+    private EventTask(String name, LocalDateTime from, LocalDateTime to, boolean done) {
         super(name, done);
         this.from = from;
         this.to = to;
@@ -43,11 +63,26 @@ public class EventTask extends Task {
                 throw new CorruptedDataException("Unknown event task status: " + parts[1]);
         }
 
-        return new EventTask(parts[2], parts[3], parts[4], done);
+        return new EventTask(parts[2], LocalDateTime.parse(parts[3]),
+                LocalDateTime.parse(parts[4]), done);
     }
 
     @Override
     public String toString() {
-        return String.format("[E]%s (from: %s to: %s)", super.toString(), from, to);
+        return String.format("[E]%s (from: %s to: %s)", super.toString(),
+                from.format(DISPLAY_FORMAT), to.format(DISPLAY_FORMAT));
+    }
+
+    @Override
+    public boolean isPast(LocalDateTime datetime) {
+        return to.isBefore(datetime);
+    }
+
+    private static LocalDateTime parseDateTime(String value, LocalTime fallbackTime) {
+        try {
+            return LocalDateTime.parse(value, INPUT_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            return LocalDate.parse(value, DATE_FORMAT).atTime(fallbackTime);
+        }
     }
 }

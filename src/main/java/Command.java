@@ -18,6 +18,9 @@ public abstract sealed class Command {
     public static final class ListCommand extends Command {
     }
 
+    public static final class PastCommand extends Command {
+    }
+
     public static final class MarkCommand extends Command {
         private final int index;
 

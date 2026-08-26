@@ -1,5 +1,7 @@
 import Exceptions.CorruptedDataException;
 
+import java.time.LocalDateTime;
+
 enum TaskStatus {
     DONE("[X]"),
     NOT_DONE("[ ]");
@@ -37,6 +39,10 @@ public abstract class Task {
     }
 
     public abstract String toSerialised();
+
+    public boolean isPast(LocalDateTime datetime) {
+        return false;
+    }
 
     /**
      * Delegates deserialisation to the factory belonging to the matching subtype.

@@ -1,14 +1,33 @@
 import Exceptions.CorruptedDataException;
 
-public class DeadlineTask extends Task {
-    private final String by;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
-    public DeadlineTask(String name, String by) {
+public class DeadlineTask extends Task {
+    private static final DateTimeFormatter INPUT_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
+                    .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("uuuu-MM-dd")
+                    .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM dd yyyy h:mm a");
+    private final LocalDateTime by;
+
+    public DeadlineTask(String name, LocalDateTime by) {
         super(name);
         this.by = by;
     }
 
-    private DeadlineTask(String name, String by, boolean done) {
+    public DeadlineTask(String name, String by) {
+        this(name, parseDateTime(by));
+    }
+
+    private DeadlineTask(String name, LocalDateTime by, boolean done) {
         super(name, done);
         this.by = by;
     }
@@ -40,11 +59,25 @@ public class DeadlineTask extends Task {
                 throw new CorruptedDataException("Unknown deadline task status: " + parts[1]);
         }
 
-        return new DeadlineTask(parts[2], parts[3], done);
+        return new DeadlineTask(parts[2], LocalDateTime.parse(parts[3]), done);
     }
 
     @Override
     public String toString() {
-        return String.format("[D]%s (by: %s)", super.toString(), by);
+        return String.format("[D]%s (by: %s)", super.toString(),
+                by.format(DISPLAY_FORMAT));
+    }
+
+    @Override
+    public boolean isPast(LocalDateTime datetime) {
+        return by.isBefore(datetime);
+    }
+
+    private static LocalDateTime parseDateTime(String value) {
+        try {
+            return LocalDateTime.parse(value, INPUT_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            return LocalDate.parse(value, DATE_FORMAT).atTime(LocalTime.of(23, 59));
+        }
     }
 }
