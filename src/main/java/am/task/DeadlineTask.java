@@ -1,6 +1,4 @@
-package AM.task;
-
-import AM.storage.CorruptedDataException;
+package am.task;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +7,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 
+import am.storage.CorruptedDataException;
+
+/** Represents a task that must be completed by a specified date and time. */
 public class DeadlineTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
@@ -20,11 +21,13 @@ public class DeadlineTask extends Task {
             DateTimeFormatter.ofPattern("MMM dd yyyy h:mm a");
     private final LocalDateTime by;
 
+    /** Creates a deadline task with an already parsed deadline. */
     public DeadlineTask(String name, LocalDateTime by) {
         super(name);
         this.by = by;
     }
 
+    /** Creates a deadline task by parsing a date or date-time string. */
     public DeadlineTask(String name, String by) {
         this(name, parseDateTime(by));
     }
@@ -35,11 +38,12 @@ public class DeadlineTask extends Task {
     }
 
     @Override
-    public String toSerialised() {
-        return String.format("D | %s | %s | %s", getSerialisedStatus(), getName(), by);
+    public String toSerialized() {
+        return String.format("D | %s | %s | %s", getSerializedStatus(), getName(), by);
     }
 
-    public static DeadlineTask fromSerialised(String line) throws CorruptedDataException {
+    /** Reconstructs a deadline task from one serialized storage record. */
+    public static DeadlineTask fromSerialized(String line) throws CorruptedDataException {
         if (line == null || line.isBlank()) {
             throw new CorruptedDataException("Deadline task data is empty");
         }
@@ -75,6 +79,7 @@ public class DeadlineTask extends Task {
         return by.isBefore(datetime);
     }
 
+    /** Parses a supported date or date-time string with a suitable fallback time. */
     private static LocalDateTime parseDateTime(String value) {
         try {
             return LocalDateTime.parse(value, INPUT_FORMAT);
