@@ -279,7 +279,7 @@ bye
 Expected output from each malformed structured command:
 
 ```text
-You messed up the command
+You messed up the command.
 ```
 
 Expected output from `list`:
