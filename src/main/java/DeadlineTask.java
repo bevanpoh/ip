@@ -1,21 +1,25 @@
 import Exceptions.CorruptedDataException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class DeadlineTask extends Task {
-    private final LocalDate by;
+    private static final DateTimeFormatter INPUT_FORMAT =
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm");
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
+    private final LocalDateTime by;
 
-    public DeadlineTask(String name, LocalDate by) {
+    public DeadlineTask(String name, LocalDateTime by) {
         super(name);
         this.by = by;
     }
 
     public DeadlineTask(String name, String by) {
-        this(name, LocalDate.parse(by));
+        this(name, LocalDateTime.parse(by, INPUT_FORMAT));
     }
 
-    private DeadlineTask(String name, LocalDate by, boolean done) {
+    private DeadlineTask(String name, LocalDateTime by, boolean done) {
         super(name, done);
         this.by = by;
     }
@@ -47,12 +51,12 @@ public class DeadlineTask extends Task {
                 throw new CorruptedDataException("Unknown deadline task status: " + parts[1]);
         }
 
-        return new DeadlineTask(parts[2], LocalDate.parse(parts[3]), done);
+        return new DeadlineTask(parts[2], LocalDateTime.parse(parts[3]), done);
     }
 
     @Override
     public String toString() {
         return String.format("[D]%s (by: %s)", super.toString(),
-                by.format(DateTimeFormatter.ofPattern("MMM d yyyy")));
+                by.format(DISPLAY_FORMAT));
     }
 }

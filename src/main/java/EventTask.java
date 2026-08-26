@@ -1,23 +1,27 @@
 import Exceptions.CorruptedDataException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class EventTask extends Task {
-    private final LocalDate from;
-    private final LocalDate to;
+    private static final DateTimeFormatter INPUT_FORMAT =
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm");
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
+    private final LocalDateTime from;
+    private final LocalDateTime to;
 
-    public EventTask(String name, LocalDate from, LocalDate to) {
+    public EventTask(String name, LocalDateTime from, LocalDateTime to) {
         super(name);
         this.from = from;
         this.to = to;
     }
 
     public EventTask(String name, String from, String to) {
-        this(name, LocalDate.parse(from), LocalDate.parse(to));
+        this(name, LocalDateTime.parse(from, INPUT_FORMAT), LocalDateTime.parse(to, INPUT_FORMAT));
     }
 
-    private EventTask(String name, LocalDate from, LocalDate to, boolean done) {
+    private EventTask(String name, LocalDateTime from, LocalDateTime to, boolean done) {
         super(name, done);
         this.from = from;
         this.to = to;
@@ -50,13 +54,13 @@ public class EventTask extends Task {
                 throw new CorruptedDataException("Unknown event task status: " + parts[1]);
         }
 
-        return new EventTask(parts[2], LocalDate.parse(parts[3]), LocalDate.parse(parts[4]), done);
+        return new EventTask(parts[2], LocalDateTime.parse(parts[3]),
+                LocalDateTime.parse(parts[4]), done);
     }
 
     @Override
     public String toString() {
         return String.format("[E]%s (from: %s to: %s)", super.toString(),
-                from.format(DateTimeFormatter.ofPattern("MMM d yyyy")),
-                to.format(DateTimeFormatter.ofPattern("MMM d yyyy")));
+                from.format(DISPLAY_FORMAT), to.format(DISPLAY_FORMAT));
     }
 }
