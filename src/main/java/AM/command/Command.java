@@ -1,3 +1,7 @@
+package AM.command;
+
+import AM.task.Task;
+
 // TODO: This design aims to reduce file bloat for the different command types
 // The commands are primarily meant to be data carriers and don't contain
 // any execution logic, that should be handled by the chatbot I feel.

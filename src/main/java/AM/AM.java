@@ -1,6 +1,14 @@
-import Exceptions.CorruptedDataException;
-import Exceptions.InvalidCommandException;
-import Exceptions.UnknownCommandException;
+package AM;
+
+import AM.command.Command;
+import AM.command.CommandParser;
+import AM.command.InvalidCommandException;
+import AM.command.UnknownCommandException;
+import AM.storage.CorruptedDataException;
+import AM.storage.Storage;
+import AM.task.Task;
+import AM.task.TaskList;
+import AM.ui.UI;
 
 import java.time.LocalDateTime;
 

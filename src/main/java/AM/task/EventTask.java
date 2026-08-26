@@ -1,4 +1,6 @@
-import Exceptions.CorruptedDataException;
+package AM.task;
+
+import AM.storage.CorruptedDataException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
