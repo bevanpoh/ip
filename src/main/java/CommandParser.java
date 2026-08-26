@@ -2,7 +2,7 @@ import Exceptions.MissingArgumentException;
 import Exceptions.UnknownCommandException;
 
 public class CommandParser {
-    public static Command parse(String input) throws UnknownCommandException, MissingArgumentException {
+    public static Command parse(String input) throws MissingArgumentException {
         String[] parts = input.split("\\s+", 2);
         String commandType = parts[0].trim();
         switch (commandType) {
