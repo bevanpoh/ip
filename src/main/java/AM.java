@@ -2,6 +2,7 @@ import Exceptions.CorruptedDataException;
 import Exceptions.InvalidCommandException;
 import Exceptions.UnknownCommandException;
 
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 public class AM {
@@ -54,6 +55,9 @@ public class AM {
                     return;
                 case Command.ListCommand c:
                     printResponse(tasks.toString());
+                    break;
+                case Command.PastCommand c:
+                    printResponse(tasks.getPastTasks(LocalDateTime.now()));
                     break;
                 case Command.MarkCommand c: {
                     try {

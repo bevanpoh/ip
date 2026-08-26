@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.time.LocalDateTime;
 
 public class TaskList {
     private final ArrayList<Task> tasks;
@@ -29,6 +30,22 @@ public class TaskList {
 
     public int getLength() {
         return tasks.size();
+    }
+
+    public String getPastTasks(LocalDateTime datetime) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < tasks.size(); i++) {
+            if (!tasks.get(i).isPast(datetime)) {
+                continue;
+            }
+            if (!result.isEmpty()) {
+                result.append("\n");
+            }
+            result.append(i + 1)
+                    .append(". ")
+                    .append(tasks.get(i));
+        }
+        return result.toString();
     }
 
     @Override

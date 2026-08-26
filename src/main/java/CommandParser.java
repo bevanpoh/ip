@@ -21,6 +21,12 @@ public class CommandParser {
                 }
                 return new Command.ListCommand();
             }
+            case "past": {
+                if (!argument.trim().isEmpty()) {
+                    throw new InvalidCommandException("You messed up the command.");
+                }
+                return new Command.PastCommand();
+            }
             case "mark":
                 return new Command.MarkCommand(parseTaskIndex(argument));
             case "unmark":

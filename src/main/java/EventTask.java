@@ -73,6 +73,11 @@ public class EventTask extends Task {
                 from.format(DISPLAY_FORMAT), to.format(DISPLAY_FORMAT));
     }
 
+    @Override
+    public boolean isPast(LocalDateTime datetime) {
+        return to.isBefore(datetime);
+    }
+
     private static LocalDateTime parseDateTime(String value, LocalTime fallbackTime) {
         try {
             return LocalDateTime.parse(value, INPUT_FORMAT);

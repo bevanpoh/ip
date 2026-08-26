@@ -68,6 +68,11 @@ public class DeadlineTask extends Task {
                 by.format(DISPLAY_FORMAT));
     }
 
+    @Override
+    public boolean isPast(LocalDateTime datetime) {
+        return by.isBefore(datetime);
+    }
+
     private static LocalDateTime parseDateTime(String value) {
         try {
             return LocalDateTime.parse(value, INPUT_FORMAT);
