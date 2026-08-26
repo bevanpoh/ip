@@ -1,11 +1,19 @@
 import Exceptions.CorruptedDataException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 public class EventTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
-            DateTimeFormatter.ofPattern("d/M/uuuu HHmm");
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm")
+                    .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("d/M/uuuu")
+                    .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter DISPLAY_FORMAT =
             DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
     private final LocalDateTime from;
@@ -18,7 +26,8 @@ public class EventTask extends Task {
     }
 
     public EventTask(String name, String from, String to) {
-        this(name, LocalDateTime.parse(from, INPUT_FORMAT), LocalDateTime.parse(to, INPUT_FORMAT));
+        this(name, parseDateTime(from, LocalTime.MIDNIGHT),
+                parseDateTime(to, LocalTime.of(23, 59)));
     }
 
     private EventTask(String name, LocalDateTime from, LocalDateTime to, boolean done) {
@@ -62,5 +71,13 @@ public class EventTask extends Task {
     public String toString() {
         return String.format("[E]%s (from: %s to: %s)", super.toString(),
                 from.format(DISPLAY_FORMAT), to.format(DISPLAY_FORMAT));
+    }
+
+    private static LocalDateTime parseDateTime(String value, LocalTime fallbackTime) {
+        try {
+            return LocalDateTime.parse(value, INPUT_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            return LocalDate.parse(value, DATE_FORMAT).atTime(fallbackTime);
+        }
     }
 }

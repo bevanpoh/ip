@@ -1,11 +1,19 @@
 import Exceptions.CorruptedDataException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 public class DeadlineTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
-            DateTimeFormatter.ofPattern("d/M/uuuu HHmm");
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm")
+                    .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("d/M/uuuu")
+                    .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter DISPLAY_FORMAT =
             DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
     private final LocalDateTime by;
@@ -16,7 +24,7 @@ public class DeadlineTask extends Task {
     }
 
     public DeadlineTask(String name, String by) {
-        this(name, LocalDateTime.parse(by, INPUT_FORMAT));
+        this(name, parseDateTime(by));
     }
 
     private DeadlineTask(String name, LocalDateTime by, boolean done) {
@@ -58,5 +66,13 @@ public class DeadlineTask extends Task {
     public String toString() {
         return String.format("[D]%s (by: %s)", super.toString(),
                 by.format(DISPLAY_FORMAT));
+    }
+
+    private static LocalDateTime parseDateTime(String value) {
+        try {
+            return LocalDateTime.parse(value, INPUT_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            return LocalDate.parse(value, DATE_FORMAT).atTime(LocalTime.of(23, 59));
+        }
     }
 }
