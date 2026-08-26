@@ -1,16 +1,23 @@
 import Exceptions.CorruptedDataException;
 
-public class EventTask extends Task {
-    private final String from;
-    private final String to;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-    public EventTask(String name, String from, String to) {
+public class EventTask extends Task {
+    private final LocalDate from;
+    private final LocalDate to;
+
+    public EventTask(String name, LocalDate from, LocalDate to) {
         super(name);
         this.from = from;
         this.to = to;
     }
 
-    private EventTask(String name, String from, String to, boolean done) {
+    public EventTask(String name, String from, String to) {
+        this(name, LocalDate.parse(from), LocalDate.parse(to));
+    }
+
+    private EventTask(String name, LocalDate from, LocalDate to, boolean done) {
         super(name, done);
         this.from = from;
         this.to = to;
@@ -43,11 +50,13 @@ public class EventTask extends Task {
                 throw new CorruptedDataException("Unknown event task status: " + parts[1]);
         }
 
-        return new EventTask(parts[2], parts[3], parts[4], done);
+        return new EventTask(parts[2], LocalDate.parse(parts[3]), LocalDate.parse(parts[4]), done);
     }
 
     @Override
     public String toString() {
-        return String.format("[E]%s (from: %s to: %s)", super.toString(), from, to);
+        return String.format("[E]%s (from: %s to: %s)", super.toString(),
+                from.format(DateTimeFormatter.ofPattern("MMM d yyyy")),
+                to.format(DateTimeFormatter.ofPattern("MMM d yyyy")));
     }
 }

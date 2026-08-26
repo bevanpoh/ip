@@ -1,14 +1,21 @@
 import Exceptions.CorruptedDataException;
 
-public class DeadlineTask extends Task {
-    private final String by;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-    public DeadlineTask(String name, String by) {
+public class DeadlineTask extends Task {
+    private final LocalDate by;
+
+    public DeadlineTask(String name, LocalDate by) {
         super(name);
         this.by = by;
     }
 
-    private DeadlineTask(String name, String by, boolean done) {
+    public DeadlineTask(String name, String by) {
+        this(name, LocalDate.parse(by));
+    }
+
+    private DeadlineTask(String name, LocalDate by, boolean done) {
         super(name, done);
         this.by = by;
     }
@@ -40,11 +47,12 @@ public class DeadlineTask extends Task {
                 throw new CorruptedDataException("Unknown deadline task status: " + parts[1]);
         }
 
-        return new DeadlineTask(parts[2], parts[3], done);
+        return new DeadlineTask(parts[2], LocalDate.parse(parts[3]), done);
     }
 
     @Override
     public String toString() {
-        return String.format("[D]%s (by: %s)", super.toString(), by);
+        return String.format("[D]%s (by: %s)", super.toString(),
+                by.format(DateTimeFormatter.ofPattern("MMM d yyyy")));
     }
 }
