@@ -9,16 +9,28 @@ import java.nio.file.StandardOpenOption;
 import am.task.Task;
 import am.task.TaskList;
 
-/** Loads and saves tasks using the application's text-file format. */
+/**
+ * Reads and writes the task list in the application's data file.
+ */
 public class Storage {
     private final Path filePath;
 
-    /** Creates storage backed by the given file path. */
+    /**
+     * Creates storage backed by the supplied file path.
+     *
+     * @param filePath path to the task data file
+     */
     public Storage(String filePath) {
         this.filePath = Path.of(filePath);
     }
 
-    /** Loads all tasks from disk, rejecting malformed records. */
+    /**
+     * Loads tasks from disk, ignoring blank lines.
+     *
+     * @return the loaded tasks, or an empty list when the file does not exist
+     * @throws IOException if the file cannot be read
+     * @throws CorruptedDataException if a non-blank line is malformed
+     */
     public TaskList load() throws IOException, CorruptedDataException {
         TaskList tasks = new TaskList();
 
@@ -41,7 +53,12 @@ public class Storage {
         return tasks;
     }
 
-    /** Saves all tasks, creating the parent directory when necessary. */
+    /**
+     * Saves all tasks, replacing any existing contents of the data file.
+     *
+     * @param tasks tasks to persist
+     * @throws IOException if the file or its parent directory cannot be written
+     */
     public void save(TaskList tasks) throws IOException {
         Path parent = filePath.getParent();
         if (parent != null) {

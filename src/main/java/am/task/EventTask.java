@@ -9,7 +9,9 @@ import java.time.format.ResolverStyle;
 
 import am.storage.CorruptedDataException;
 
-/** Represents a task that occurs between a start and end date and time. */
+/**
+ * Represents a task that occurs during a specified time interval.
+ */
 public class EventTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
@@ -22,14 +24,26 @@ public class EventTask extends Task {
     private final LocalDateTime from;
     private final LocalDateTime to;
 
-    /** Creates an event task with already parsed start and end values. */
+    /**
+     * Creates an incomplete event task.
+     *
+     * @param name task description
+     * @param from event start date and time
+     * @param to event end date and time
+     */
     public EventTask(String name, LocalDateTime from, LocalDateTime to) {
         super(name);
         this.from = from;
         this.to = to;
     }
 
-    /** Creates an event task by parsing date or date-time strings. */
+    /**
+     * Creates an incomplete event task from date or date-time strings.
+     *
+     * @param name task description
+     * @param from event start in {@code yyyy-MM-dd} or {@code yyyy-MM-dd HHmm} format
+     * @param to event end in {@code yyyy-MM-dd} or {@code yyyy-MM-dd HHmm} format
+     */
     public EventTask(String name, String from, String to) {
         this(name, parseDateTime(from, LocalTime.MIDNIGHT),
                 parseDateTime(to, LocalTime.of(23, 59)));
@@ -41,12 +55,21 @@ public class EventTask extends Task {
         this.to = to;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toSerialized() {
         return String.format("E | %s | %s | %s | %s", getSerializedStatus(), getName(), from, to);
     }
 
-    /** Reconstructs an event task from one serialized storage record. */
+    /**
+     * Reconstructs an event task from its persisted representation.
+     *
+     * @param line serialized event task data
+     * @return reconstructed event task
+     * @throws CorruptedDataException if the line has an invalid format
+     */
     public static EventTask fromSerialized(String line) throws CorruptedDataException {
         if (line == null || line.isBlank()) {
             throw new CorruptedDataException("Event task data is empty");
@@ -73,12 +96,18 @@ public class EventTask extends Task {
                 LocalDateTime.parse(parts[4]), done);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return String.format("[E]%s (from: %s to: %s)", super.toString(),
                 from.format(DISPLAY_FORMAT), to.format(DISPLAY_FORMAT));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isPast(LocalDateTime datetime) {
         return to.isBefore(datetime);

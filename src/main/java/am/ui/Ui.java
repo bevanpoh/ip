@@ -2,7 +2,9 @@ package am.ui;
 
 import java.util.Scanner;
 
-/** Handles console input and formatted output for the task manager. */
+/**
+ * Handles console input and formatted console output for the application.
+ */
 public class Ui {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = "_________________________________________________________________";
@@ -17,29 +19,45 @@ public class Ui {
 
     private final Scanner scanner;
 
-    /** Creates a user interface connected to standard input. */
+    /**
+     * Creates a console user interface backed by standard input.
+     */
     public Ui() {
         scanner = new Scanner(System.in);
     }
 
-    /** Prints a message between the application's separator lines. */
+    /**
+     * Prints a message surrounded by the application's response separator.
+     *
+     * @param message message to print
+     */
     public void printResponse(String message) {
         System.out.println(insertIndent(SEPARATOR));
         System.out.println(insertIndent(message));
         System.out.println(insertIndent(SEPARATOR));
     }
 
-    /** Prints an error message using the standard response format. */
+    /**
+     * Displays an error message using the standard response format.
+     *
+     * @param message error message to display
+     */
     public void showError(String message) {
         printResponse(message);
     }
 
-    /** Reads the next command line from standard input. */
+    /**
+     * Reads the next command from standard input.
+     *
+     * @return command entered by the user
+     */
     public String readCommand() {
         return scanner.nextLine();
     }
 
-    /** Prints the application's welcome banner and prompt. */
+    /**
+     * Displays the application's welcome banner and prompt.
+     */
     public void showWelcome() {
         printResponse(String.format("%s\nMy name is AM.\nWhat do you want?", BANNER));
     }

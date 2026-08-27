@@ -2,9 +2,15 @@ package am.task;
 
 import am.storage.CorruptedDataException;
 
-/** Represents a task without a scheduled date or time. */
+/**
+ * Represents a task without a deadline or event time.
+ */
 public class TodoTask extends Task {
-    /** Creates an unfinished todo task with the given name. */
+    /**
+     * Creates an incomplete todo task.
+     *
+     * @param name task description
+     */
     public TodoTask(String name) {
         super(name);
     }
@@ -13,12 +19,21 @@ public class TodoTask extends Task {
         super(name, done);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toSerialized() {
         return String.format("T | %s | %s", getSerializedStatus(), getName());
     }
 
-    /** Reconstructs a todo task from one serialized storage record. */
+    /**
+     * Reconstructs a todo task from its persisted representation.
+     *
+     * @param line serialized todo task data
+     * @return reconstructed todo task
+     * @throws CorruptedDataException if the line has an invalid format
+     */
     public static TodoTask fromSerialized(String line) throws CorruptedDataException {
         if (line == null || line.isBlank()) {
             throw new CorruptedDataException("Todo task data is empty");
@@ -44,6 +59,9 @@ public class TodoTask extends Task {
         return new TodoTask(parts[2], done);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return String.format("[T]%s", super.toString());
