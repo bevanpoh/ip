@@ -25,6 +25,18 @@ public abstract sealed class Command {
     public static final class PastCommand extends Command {
     }
 
+    public static final class FindCommand extends Command {
+        private final String keyword;
+
+        public FindCommand(String keyword) {
+            this.keyword = keyword;
+        }
+
+        public String getKeyword() {
+            return keyword;
+        }
+    }
+
     public static final class MarkCommand extends Command {
         private final int index;
 

@@ -47,6 +47,9 @@ public class AM {
                 case Command.PastCommand c:
                     ui.printResponse(tasks.getPastTasks(LocalDateTime.now()));
                     break;
+                case Command.FindCommand c:
+                    ui.printResponse(tasks.getMatchingTask(c.getKeyword()));
+                    break;
                 case Command.MarkCommand c: {
                     try {
                         tasks.markTask(c.getIndex());

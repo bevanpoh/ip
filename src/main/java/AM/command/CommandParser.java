@@ -30,6 +30,13 @@ public class CommandParser {
                 }
                 return new Command.PastCommand();
             }
+            case "find": {
+                String keyword = argument.trim();
+                if (keyword.isEmpty()) {
+                    throw new InvalidCommandException("You messed up the command.");
+                }
+                return new Command.FindCommand(keyword);
+            }
             case "mark":
                 return new Command.MarkCommand(parseTaskIndex(argument));
             case "unmark":

@@ -34,6 +34,29 @@ public class TaskList {
         return tasks.size();
     }
 
+    /**
+     * Finds tasks whose descriptions contain the given keyword.
+     *
+     * @param keyword text to find in task descriptions
+     * @return matching tasks in their original order, or an empty string
+     */
+    public String getMatchingTask(String keyword) {
+        String normalizedKeyword = keyword.trim().toLowerCase();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (task.getName().toLowerCase().contains(normalizedKeyword)) {
+                if (!result.isEmpty()) {
+                    result.append("\n");
+                }
+                result.append(i + 1)
+                        .append(". ")
+                        .append(task);
+            }
+        }
+        return result.toString();
+    }
+
     public String getPastTasks(LocalDateTime datetime) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < tasks.size(); i++) {
