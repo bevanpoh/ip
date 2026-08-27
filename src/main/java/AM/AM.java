@@ -12,9 +12,24 @@ import AM.ui.UI;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entry point for the AM task-management application.
+ */
 public class AM {
     private static final String DATA_FILE_PATH = "./data/AM.txt";
 
+    /**
+     * Creates the application entry-point object.
+     */
+    public AM() {
+    }
+
+    /**
+     * Starts the application, loads saved tasks, and processes user commands.
+     *
+     * @param args command-line arguments (currently unused)
+     * @throws java.io.IOException if task data cannot be read or written
+     */
     public static void main(String[] args) throws java.io.IOException {
         Storage storage = new Storage(DATA_FILE_PATH);
         UI ui = new UI();

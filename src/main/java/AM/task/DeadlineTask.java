@@ -9,6 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 
+/**
+ * Represents a task that must be completed by a specific date and time.
+ */
 public class DeadlineTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
@@ -20,11 +23,23 @@ public class DeadlineTask extends Task {
             DateTimeFormatter.ofPattern("MMM dd yyyy h:mm a");
     private final LocalDateTime by;
 
+    /**
+     * Creates an incomplete deadline task.
+     *
+     * @param name task description
+     * @param by deadline date and time
+     */
     public DeadlineTask(String name, LocalDateTime by) {
         super(name);
         this.by = by;
     }
 
+    /**
+     * Creates an incomplete deadline task from a date or date-time string.
+     *
+     * @param name task description
+     * @param by deadline in {@code yyyy-MM-dd} or {@code yyyy-MM-dd HHmm} format
+     */
     public DeadlineTask(String name, String by) {
         this(name, parseDateTime(by));
     }
@@ -34,11 +49,21 @@ public class DeadlineTask extends Task {
         this.by = by;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toSerialised() {
         return String.format("D | %s | %s | %s", getSerialisedStatus(), getName(), by);
     }
 
+    /**
+     * Reconstructs a deadline task from its persisted representation.
+     *
+     * @param line serialised deadline task data
+     * @return reconstructed deadline task
+     * @throws CorruptedDataException if the line has an invalid format
+     */
     public static DeadlineTask fromSerialised(String line) throws CorruptedDataException {
         if (line == null || line.isBlank()) {
             throw new CorruptedDataException("Deadline task data is empty");
@@ -64,12 +89,18 @@ public class DeadlineTask extends Task {
         return new DeadlineTask(parts[2], LocalDateTime.parse(parts[3]), done);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return String.format("[D]%s (by: %s)", super.toString(),
                 by.format(DISPLAY_FORMAT));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isPast(LocalDateTime datetime) {
         return by.isBefore(datetime);

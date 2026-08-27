@@ -6,7 +6,24 @@ import AM.task.TodoTask;
 
 import java.time.format.DateTimeParseException;
 
+/**
+ * Converts textual user commands into typed command objects.
+ */
 public class CommandParser {
+    /**
+     * Creates a command parser.
+     */
+    public CommandParser() {
+    }
+
+    /**
+     * Parses a complete user command.
+     *
+     * @param input command text entered by the user
+     * @return the corresponding command object
+     * @throws InvalidCommandException if the command arguments are malformed
+     * @throws UnknownCommandException if the command name is not supported
+     */
     public static Command parse(String input) {
         String[] parts = input.split("\\s+", 2);
         String commandType = parts[0].trim();
