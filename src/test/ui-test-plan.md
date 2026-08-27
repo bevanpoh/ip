@@ -17,6 +17,7 @@ The source tree currently contains Java source files and this test plan, but no 
 - Every response is printed between 65-underscore separator lines. Response text is indented by four spaces, including every line of a multi-line response.
 - Startup contains the seven-line AM banner, My name is AM., and What do you want?. Farewell is You may leave, but I will be here..
 - An empty list or past response has an empty body between the separators.
+- A find response contains only the matching task lines, with no header. No matches produce an empty body between the separators.
 
 ### Supported commands
 
@@ -27,6 +28,7 @@ The source tree currently contains Java source files and this test plan, but no 
 | event <name> /from <date-or-date-time> /to <date-or-date-time> | Adds an event task. |
 | list | Displays all tasks in insertion order. |
 | past | Displays deadline/event tasks whose end time is before LocalDateTime.now(). Todo tasks are never past. |
+| find <keyword> | Displays tasks whose descriptions contain the keyword, case-insensitively, while retaining their original task numbers. |
 | mark <number> | Marks the selected task done. |
 | unmark <number> | Marks the selected task not done. |
 | delete <number> | Removes the selected task. |
@@ -406,6 +408,28 @@ bye
 
 Both structured commands return You messed up the command. The list remains empty. This specifically tests repeated /by or /to; the current parser does not reject every unrecognised slash marker.
 
+### UI-16: Find tasks by keyword
+
+Input:
+
+~~~
+todo read book
+todo buy bread
+deadline return book /by 2026-08-28
+find BOOK
+find missing
+bye
+~~~
+
+The first `find` response is:
+
+~~~
+1. [T][ ] read book
+3. [D][ ] return book (by: Aug 28 2026 11:59 pm)
+~~~
+
+The search is case-insensitive, matches text within task descriptions, and retains the original task numbers. The second `find` response has an empty body between the separators. Neither response contains a header.
+
 ## 4. Acceptance test matrix
 
 | ID | Priority | Scenario | Pass condition |
@@ -426,6 +450,7 @@ Both structured commands return You messed up the command. The list remains empt
 | CLI-14 | High | UI-13 | Add, mark, unmark, and delete mutations are persisted. |
 | CLI-15 | High | UI-14 | A corrupted record is handled without overwriting the file. |
 | CLI-16 | Medium | UI-15 | Duplicate structured markers are rejected and do not mutate the list. |
+| CLI-17 | High | UI-16 | Find returns case-insensitive description matches with original task numbers and an empty body for no matches. |
 
 ## 5. Parser and model checks
 
@@ -444,6 +469,7 @@ These checks can be implemented directly against CommandParser.parse, Task, and 
 | todo borrow book | AddTaskCommand with a TodoTask named borrow book |
 | deadline submit report /by 2026-08-28 | AddTaskCommand with deadline 2026-08-28T23:59 |
 | event meeting /from 2026-08-28 1400 /to 2026-08-28 1600 | AddTaskCommand with the expected two LocalDateTime values |
+| find borrow book | FindCommand with keyword borrow book |
 
 ### Parser: rejected and boundary inputs
 
@@ -453,6 +479,7 @@ Verify the exception type and message for:
 - non-numeric indexes such as mark abc, unmark 1.5, and delete two;
 - missing or repeated /by, /from, and /to values;
 - invalid dates such as deadline report /by Sunday;
+- missing find keywords such as find;
 - unknown names, different command case, leading whitespace, and empty input.
 
 The current parser accepts numeric values such as 0 and -1 as commands and leaves range validation to TaskList/`am.Am`. It accepts trailing whitespace for no-argument commands and trims task arguments. It does not validate that a structured-task name is non-empty, and unrecognized slash markers can be ignored if required markers are present. Test these as compatibility behavior or change them deliberately with corresponding UI updates.
@@ -476,6 +503,7 @@ Unknown type markers, invalid status values, missing fields, and extra fields sh
 - addTask appends; getTask preserves order; deleteTask removes and shifts later tasks.
 - markTask, unmarkTask, and deleteTask use zero-based indexes and throw IndexOutOfBoundsException for invalid indexes.
 - getPastTasks excludes todo tasks and retains original one-based numbers.
+- getMatchingTask returns matching description lines, retains original one-based numbers, and returns an empty string when there are no matches.
 - Storage.load() returns an empty list for a missing file.
 - Storage.save() creates parent directories, creates/truncates the file, and writes one serialized line per task.
 - Load/save preserves subtype, order, fields, and completion status.

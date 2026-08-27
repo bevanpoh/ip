@@ -50,6 +50,9 @@ public class Am {
                 case Command.PastCommand ignored:
                     ui.printResponse(tasks.getPastTasks(LocalDateTime.now()));
                     break;
+                case Command.FindCommand findCommand:
+                    ui.printResponse(tasks.getMatchingTask(findCommand.getKeyword()));
+                    break;
                 case Command.MarkCommand markCommand: {
                     try {
                         tasks.markTask(markCommand.getIndex());

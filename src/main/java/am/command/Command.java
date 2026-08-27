@@ -42,6 +42,29 @@ public abstract sealed class Command {
         }
     }
 
+    /** Requests that tasks matching a keyword be displayed. */
+    public static final class FindCommand extends Command {
+        private final String keyword;
+
+        /**
+         * Creates a command that searches task names.
+         *
+         * @param keyword text to search for
+         */
+        public FindCommand(String keyword) {
+            this.keyword = keyword;
+        }
+
+        /**
+         * Returns the search keyword.
+         *
+         * @return search keyword
+         */
+        public String getKeyword() {
+            return keyword;
+        }
+    }
+
     /**
      * Marks a task as complete.
      */
