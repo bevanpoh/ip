@@ -1,33 +1,29 @@
-package AM.command;
+package am.command;
 
-import AM.task.Task;
+import am.task.Task;
 
-// TODO: This design aims to reduce file bloat for the different command types
-// The commands are primarily meant to be data carriers and don't contain
-// any execution logic, that should be handled by the chatbot I feel.
-
-// An alternative design is to use a sealed interface and inner record classes
-// instead of a sealed class with static inner classes.
-// The alternative will result in more concise code,
-// but using interface without defining a shared method contract feels weird to me
-// so this will have to do for now
+/** Represents a parsed command and its optional data. */
 public abstract sealed class Command {
-    // Private constructor locks inheritance to this file
     private Command() {
     }
 
+    /** Represents a command that exits the application. */
     public static final class ByeCommand extends Command {
     }
 
+    /** Represents a command that lists all tasks. */
     public static final class ListCommand extends Command {
     }
 
+    /** Represents a command that lists tasks whose scheduled time has passed. */
     public static final class PastCommand extends Command {
     }
 
+    /** Represents a command that marks a task as done. */
     public static final class MarkCommand extends Command {
         private final int index;
 
+        /** Creates a mark command for the given zero-based task index. */
         public MarkCommand(int index) {
             this.index = index;
         }
@@ -37,9 +33,11 @@ public abstract sealed class Command {
         }
     }
 
+    /** Represents a command that marks a task as not done. */
     public static final class UnmarkCommand extends Command {
         private final int index;
 
+        /** Creates an unmark command for the given zero-based task index. */
         public UnmarkCommand(int index) {
             this.index = index;
         }
@@ -49,9 +47,11 @@ public abstract sealed class Command {
         }
     }
 
+    /** Represents a command that adds a task. */
     public static final class AddTaskCommand extends Command {
         private final Task task;
 
+        /** Creates an add command for the given task. */
         public AddTaskCommand(Task task) {
             this.task = task;
         }
@@ -61,9 +61,11 @@ public abstract sealed class Command {
         }
     }
 
+    /** Represents a command that deletes a task. */
     public static final class DeleteTaskCommand extends Command {
         private final int index;
 
+        /** Creates a delete command for the given zero-based task index. */
         public DeleteTaskCommand(int index) {
             this.index = index;
         }

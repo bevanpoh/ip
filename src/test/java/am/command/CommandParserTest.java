@@ -1,13 +1,14 @@
-package AM.command;
-
-import AM.task.DeadlineTask;
-import AM.task.EventTask;
-import AM.task.TodoTask;
-import org.junit.jupiter.api.Test;
+package am.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
+import am.task.DeadlineTask;
+import am.task.EventTask;
+import am.task.TodoTask;
 
 /**
  * Tests the translation from user input into command objects.
@@ -92,6 +93,8 @@ public class CommandParserTest {
         assertInvalid("deadline report /by");
         assertInvalid("event meeting /from 2026-08-28");
         assertInvalid("event meeting /from 2026-08-28 /to");
+        assertInvalid("deadline report /by 2026-08-28 /by 2026-08-29");
+        assertInvalid("event meeting /from 2026-08-28 /to 2026-08-28 1600 /to 2026-08-28 1700");
     }
 
     @Test

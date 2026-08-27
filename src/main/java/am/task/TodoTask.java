@@ -1,8 +1,10 @@
-package AM.task;
+package am.task;
 
-import AM.storage.CorruptedDataException;
+import am.storage.CorruptedDataException;
 
+/** Represents a task without a scheduled date or time. */
 public class TodoTask extends Task {
+    /** Creates an unfinished todo task with the given name. */
     public TodoTask(String name) {
         super(name);
     }
@@ -12,11 +14,12 @@ public class TodoTask extends Task {
     }
 
     @Override
-    public String toSerialised() {
-        return String.format("T | %s | %s", getSerialisedStatus(), getName());
+    public String toSerialized() {
+        return String.format("T | %s | %s", getSerializedStatus(), getName());
     }
 
-    public static TodoTask fromSerialised(String line) throws CorruptedDataException {
+    /** Reconstructs a todo task from one serialized storage record. */
+    public static TodoTask fromSerialized(String line) throws CorruptedDataException {
         if (line == null || line.isBlank()) {
             throw new CorruptedDataException("Todo task data is empty");
         }

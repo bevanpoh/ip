@@ -9,7 +9,7 @@ The source tree currently contains Java source files and this test plan, but no 
 ## 2. Current implementation contract
 
 - Use Java 25 to compile and run the application.
-- The entry point is AM; it reads one command per standard-input line.
+- The entry point is `am.Am`; it reads one command per standard-input line.
 - Each scenario should end with bye. EOF without bye is not a supported test path because the loop calls Scanner.nextLine().
 - Start a fresh process for every scenario. Persistence scenarios intentionally use the same isolated working directory across two processes.
 - The application uses the relative path ./data/AM.txt.
@@ -455,7 +455,7 @@ Verify the exception type and message for:
 - invalid dates such as deadline report /by Sunday;
 - unknown names, different command case, leading whitespace, and empty input.
 
-The current parser accepts numeric values such as 0 and -1 as commands and leaves range validation to TaskList/AM. It accepts trailing whitespace for no-argument commands and trims task arguments. It does not validate that a structured-task name is non-empty, and unrecognised slash markers can be ignored if required markers are present. Test these as compatibility behavior or change them deliberately with corresponding UI updates.
+The current parser accepts numeric values such as 0 and -1 as commands and leaves range validation to TaskList/`am.Am`. It accepts trailing whitespace for no-argument commands and trims task arguments. It does not validate that a structured-task name is non-empty, and unrecognized slash markers can be ignored if required markers are present. Test these as compatibility behavior or change them deliberately with corresponding UI updates.
 
 ### Task serialization
 
@@ -486,9 +486,9 @@ Unknown type markers, invalid status values, missing fields, and extra fields sh
 
 These are observations about the current implementation, not additional pass conditions:
 
-1. DeadlineTask.fromSerialised and EventTask.fromSerialised do not wrap an invalid serialized timestamp in CorruptedDataException. Such a line can escape the handled-memory path as an uncaught DateTimeParseException.
+1. DeadlineTask.fromSerialized and EventTask.fromSerialized do not wrap an invalid serialized timestamp in CorruptedDataException. Such a line can escape the handled-memory path as an uncaught DateTimeParseException.
 2. The parser does not normalize leading whitespace or command case.
-3. The parser permits some malformed structured-task names and ignores unrecognised slash markers when required markers are still present.
+3. The parser permits some malformed structured-task names and ignores unrecognized slash markers when required markers are still present.
 4. The application saves after each successful add, mark, unmark, and delete, but does not create data/AM.txt merely by starting or listing an empty list.
 
 Add a regression test for each limitation if it is later fixed, and update the expected UI behavior at the same time.
@@ -500,7 +500,7 @@ Compile with Java 25 from the project directory. For this source-only checkout, 
 ~~~powershell
 New-Item -ItemType Directory -Force out | Out-Null
 javac -d out (Get-ChildItem -Recurse java -Filter *.java | ForEach-Object FullName)
-java -cp out AM
+java -cp out am.Am
 ~~~
 
 Run each scenario in an isolated working directory. Retain the exact input script, captured output and exit status, data/AM.txt when persistence is in scope, the source revision, and any observed list mutation after rejected commands.

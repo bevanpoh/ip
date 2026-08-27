@@ -1,39 +1,47 @@
-package AM.task;
+package am.task;
 
-import java.util.ArrayList;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
+/** Stores tasks in insertion order and provides list operations. */
 public class TaskList {
     private final ArrayList<Task> tasks;
 
+    /** Creates an empty task list. */
     public TaskList() {
         tasks = new ArrayList<>();
     }
 
+    /** Appends a task to the end of the list. */
     public void addTask(Task task) {
         tasks.add(task);
     }
 
-    public void markTask(int taskIdx) {
-        tasks.get(taskIdx).mark();
+    /** Marks the task at the given zero-based index as done. */
+    public void markTask(int taskIndex) {
+        tasks.get(taskIndex).mark();
     }
 
-    public void unmarkTask(int taskIdx) {
-        tasks.get(taskIdx).unmark();
+    /** Marks the task at the given zero-based index as not done. */
+    public void unmarkTask(int taskIndex) {
+        tasks.get(taskIndex).unmark();
     }
 
-    public void deleteTask(int taskIdx) {
-        tasks.remove(taskIdx);
+    /** Removes the task at the given zero-based index. */
+    public void deleteTask(int taskIndex) {
+        tasks.remove(taskIndex);
     }
 
-    public Task getTask(int taskIdx) {
-        return tasks.get(taskIdx);
+    /** Returns the task at the given zero-based index. */
+    public Task getTask(int taskIndex) {
+        return tasks.get(taskIndex);
     }
 
     public int getLength() {
         return tasks.size();
     }
 
+    /** Returns past scheduled tasks with their original list numbers. */
     public String getPastTasks(LocalDateTime datetime) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < tasks.size(); i++) {

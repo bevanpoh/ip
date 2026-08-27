@@ -1,6 +1,4 @@
-package AM.task;
-
-import AM.storage.CorruptedDataException;
+package am.task;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +7,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 
+import am.storage.CorruptedDataException;
+
+/** Represents a task that occurs between a start and end date and time. */
 public class EventTask extends Task {
     private static final DateTimeFormatter INPUT_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm")
@@ -21,12 +22,14 @@ public class EventTask extends Task {
     private final LocalDateTime from;
     private final LocalDateTime to;
 
+    /** Creates an event task with already parsed start and end values. */
     public EventTask(String name, LocalDateTime from, LocalDateTime to) {
         super(name);
         this.from = from;
         this.to = to;
     }
 
+    /** Creates an event task by parsing date or date-time strings. */
     public EventTask(String name, String from, String to) {
         this(name, parseDateTime(from, LocalTime.MIDNIGHT),
                 parseDateTime(to, LocalTime.of(23, 59)));
@@ -39,11 +42,12 @@ public class EventTask extends Task {
     }
 
     @Override
-    public String toSerialised() {
-        return String.format("E | %s | %s | %s | %s", getSerialisedStatus(), getName(), from, to);
+    public String toSerialized() {
+        return String.format("E | %s | %s | %s | %s", getSerializedStatus(), getName(), from, to);
     }
 
-    public static EventTask fromSerialised(String line) throws CorruptedDataException {
+    /** Reconstructs an event task from one serialized storage record. */
+    public static EventTask fromSerialized(String line) throws CorruptedDataException {
         if (line == null || line.isBlank()) {
             throw new CorruptedDataException("Event task data is empty");
         }
@@ -80,6 +84,7 @@ public class EventTask extends Task {
         return to.isBefore(datetime);
     }
 
+    /** Parses a supported date or date-time string with a suitable fallback time. */
     private static LocalDateTime parseDateTime(String value, LocalTime fallbackTime) {
         try {
             return LocalDateTime.parse(value, INPUT_FORMAT);

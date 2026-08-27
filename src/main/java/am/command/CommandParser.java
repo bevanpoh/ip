@@ -1,12 +1,14 @@
-package AM.command;
-
-import AM.task.DeadlineTask;
-import AM.task.EventTask;
-import AM.task.TodoTask;
+package am.command;
 
 import java.time.format.DateTimeParseException;
 
+import am.task.DeadlineTask;
+import am.task.EventTask;
+import am.task.TodoTask;
+
+/** Converts user-entered command text into executable command objects. */
 public class CommandParser {
+    /** Parses a complete command line. */
     public static Command parse(String input) {
         String[] parts = input.split("\\s+", 2);
         String commandType = parts[0].trim();
@@ -51,7 +53,7 @@ public class CommandParser {
                 String by = parseParameter(args[1], "/by");
                 try {
                     return new Command.AddTaskCommand(new DeadlineTask(name, by));
-                } catch (DateTimeParseException error) {
+                } catch (DateTimeParseException exception) {
                     throw new InvalidCommandException("When is that?");
                 }
             }
@@ -66,17 +68,19 @@ public class CommandParser {
                 String to = parseParameter(args[1], "/to");
                 try {
                     return new Command.AddTaskCommand(new EventTask(name, from, to));
-                } catch (DateTimeParseException error) {
+                } catch (DateTimeParseException exception) {
                     throw new InvalidCommandException("When is that?");
                 }
             }
             case "delete":
                 return new Command.DeleteTaskCommand(parseTaskIndex(argument));
             default:
-                throw new UnknownCommandException(String.format("AAAAHHHHHHHHHHHHHHH\nYou can't tell me to '%s'", input));
+                throw new UnknownCommandException(String.format(
+                        "AAAAHHHHHHHHHHHHHHH\nYou can't tell me to '%s'", input));
         }
     }
 
+    /** Converts a one-based user task number into a zero-based list index. */
     private static int parseTaskIndex(String argument) {
         argument = argument.trim();
         if (argument.isEmpty()) {
@@ -86,19 +90,20 @@ public class CommandParser {
         int userIndex;
         try {
             userIndex = Integer.parseInt(argument);
-        } catch (NumberFormatException error) {
+        } catch (NumberFormatException exception) {
             throw new InvalidCommandException("You messed up the command.");
         }
         return userIndex - 1;
     }
 
+    /** Extracts the value associated with a command marker. */
     private static String parseParameter(String argument, String marker) {
         String[] tokens = argument.trim().split("\\s+");
         StringBuilder value = new StringBuilder();
         boolean found = false;
 
-        for (int i = 0; i < tokens.length; i++) {
-            if (!tokens[i].equals(marker)) {
+        for (int tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
+            if (!tokens[tokenIndex].equals(marker)) {
                 continue;
             }
 
@@ -107,12 +112,14 @@ public class CommandParser {
             }
             found = true;
 
-            for (i++; i < tokens.length && !tokens[i].startsWith("/"); i++) {
+            int valueIndex = tokenIndex + 1;
+            for (; valueIndex < tokens.length && !tokens[valueIndex].startsWith("/"); valueIndex++) {
                 if (!value.isEmpty()) {
                     value.append(" ");
                 }
-                value.append(tokens[i]);
+                value.append(tokens[valueIndex]);
             }
+            tokenIndex = valueIndex - 1;
         }
 
         if (!found || value.isEmpty()) {
