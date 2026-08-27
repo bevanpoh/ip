@@ -24,6 +24,14 @@ public class CommandParserTest {
     }
 
     @Test
+    void parsesFindKeyword() {
+        Command.FindCommand command = assertInstanceOf(
+                Command.FindCommand.class, CommandParser.parse("find borrow book"));
+
+        assertEquals("borrow book", command.getKeyword());
+    }
+
+    @Test
     void parsesTaskIndexesAsZeroBasedIndexes() {
         Command.MarkCommand mark = assertInstanceOf(
                 Command.MarkCommand.class, CommandParser.parse("mark 2"));
