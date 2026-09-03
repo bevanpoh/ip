@@ -53,7 +53,7 @@ test {
 }
 
 application {
-    mainClass = 'am.Am'
+    mainClass.set("am.ui.Launcher")
 }
 
 jar {

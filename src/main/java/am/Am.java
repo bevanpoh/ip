@@ -82,6 +82,15 @@ public class Am {
         }
     }
 
+    /**
+     * Returns whether the chatbot has received the exit command.
+     *
+     * @return true after the exit command has been processed
+     */
+    public boolean isExitRequested() {
+        return isExitRequested;
+    }
+
     /** Loads the task list from persistent storage. */
     private void loadTasks() throws IOException, CorruptedDataException {
         tasks = storage.load();
