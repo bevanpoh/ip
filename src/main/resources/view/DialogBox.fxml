@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 
 <fx:root alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
@@ -9,7 +10,10 @@
          type="javafx.scene.layout.HBox" xmlns="http://javafx.com/javafx/17"
          xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label fx:id="avatar" minWidth="36.0" text="A" />
+        <ImageView fx:id="avatarImage" fitHeight="36.0" fitWidth="36.0"
+                   preserveRatio="true" smooth="true" />
+        <Label fx:id="avatarLabel" managed="false" minWidth="36.0"
+               text="Y" visible="false" />
         <Label fx:id="dialog" minHeight="-Infinity" text="Label" wrapText="true" />
     </children>
     <padding>

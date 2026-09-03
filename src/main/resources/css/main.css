@@ -31,8 +31,8 @@
     -fx-spacing: 10px;
 }
 
-.am-dialog #avatar,
-.user-dialog #avatar {
+.am-dialog #avatarLabel,
+.user-dialog #avatarLabel {
     -fx-alignment: center;
     -fx-background-radius: 18px;
     -fx-font-size: 13px;
@@ -43,12 +43,7 @@
     -fx-text-alignment: center;
 }
 
-.am-dialog #avatar {
-    -fx-background-color: #2f80ed;
-    -fx-text-fill: white;
-}
-
-.user-dialog #avatar {
+.user-dialog #avatarLabel {
     -fx-background-color: #dbeafe;
     -fx-text-fill: #1d4ed8;
 }
