@@ -17,11 +17,32 @@ import am.ui.Ui;
 public class Am {
     private static final String DATA_FILE_PATH = "./data/AM.txt";
 
-    /** Starts the task manager and processes commands until the user exits. */
+    private final Storage storage;
+    private final Ui ui;
+    private TaskList tasks;
+
+    /** Creates a chatbot that stores its tasks in the default data file. */
+    public Am() {
+        storage = new Storage(DATA_FILE_PATH);
+        ui = new Ui();
+    }
+
+    /**
+     * Launches the chatbot.
+     *
+     * @throws IOException if the task data cannot be read or written
+     */
     public static void main(String[] args) throws IOException {
-        Storage storage = new Storage(DATA_FILE_PATH);
-        Ui ui = new Ui();
-        TaskList tasks;
+        Am am = new Am();
+        am.start();
+    }
+
+    /**
+     * Starts the chatbotb and processes commands until the user exits.
+     *
+     * @throws IOException if the task data cannot be read or written
+     */
+    public void start() throws IOException {
         try {
             tasks = storage.load();
         } catch (CorruptedDataException exception) {
