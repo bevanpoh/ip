@@ -107,9 +107,8 @@ public class CommandParserTest {
 
     @Test
     void rejectsInvalidDates() {
-        InvalidCommandException exception = assertThrows(
-                InvalidCommandException.class,
-                () -> CommandParser.parse("deadline report /by Sunday"));
+        InvalidCommandException exception = assertThrows(InvalidCommandException.class, (
+        ) -> CommandParser.parse("deadline report /by Sunday"));
 
         assertEquals("When is that?", exception.getMessage());
     }
