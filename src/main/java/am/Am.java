@@ -111,6 +111,11 @@ public class Am {
             return exception.getMessage();
         }
 
+        return executeCommand(command);
+    }
+
+    /** Executes a parsed command and persists changes when necessary. */
+    private String executeCommand(Command command) throws IOException {
         return switch (command) {
             case Command.ByeCommand ignored -> {
                 isExitRequested = true;
@@ -119,41 +124,52 @@ public class Am {
             case Command.ListCommand ignored -> tasks.toString();
             case Command.PastCommand ignored -> tasks.getPastTasks(LocalDateTime.now());
             case Command.FindCommand findCommand -> tasks.getMatchingTask(findCommand.getKeyword());
-            case Command.MarkCommand markCommand -> {
-                try {
-                    tasks.markTask(markCommand.getIndex());
-                    storage.save(tasks);
-                    yield String.format("Marked:\n%s", tasks.getTask(markCommand.getIndex()));
-                } catch (IndexOutOfBoundsException exception) {
-                    yield String.format("You don't have task number %d", markCommand.getIndex() + 1);
-                }
-            }
-            case Command.UnmarkCommand unmarkCommand -> {
-                try {
-                    tasks.unmarkTask(unmarkCommand.getIndex());
-                    storage.save(tasks);
-                    yield String.format("Unmarked:\n%s", tasks.getTask(unmarkCommand.getIndex()));
-                } catch (IndexOutOfBoundsException exception) {
-                    yield String.format("You don't have task number %d", unmarkCommand.getIndex() + 1);
-                }
-            }
-            case Command.AddTaskCommand addTaskCommand -> {
-                tasks.addTask(addTaskCommand.getTask());
-                storage.save(tasks);
-                yield String.format("added: %s\nNow you have %d tasks in the list",
-                        addTaskCommand.getTask(), tasks.getLength());
-            }
-            case Command.DeleteTaskCommand deleteTaskCommand -> {
-                try {
-                    Task taskToDelete = tasks.getTask(deleteTaskCommand.getIndex());
-                    tasks.deleteTask(deleteTaskCommand.getIndex());
-                    storage.save(tasks);
-                    yield String.format("Deleted:\n%s\nNow you have %d tasks in the list",
-                            taskToDelete, tasks.getLength());
-                } catch (IndexOutOfBoundsException exception) {
-                    yield String.format("You don't have task number %d", deleteTaskCommand.getIndex() + 1);
-                }
-            }
+            case Command.MarkCommand markCommand -> updateTaskStatus(markCommand.getIndex(), true);
+            case Command.UnmarkCommand unmarkCommand -> updateTaskStatus(unmarkCommand.getIndex(), false);
+            case Command.AddTaskCommand addTaskCommand -> addTask(addTaskCommand.getTask());
+            case Command.DeleteTaskCommand deleteTaskCommand -> deleteTask(deleteTaskCommand.getIndex());
         };
+    }
+
+    /** Marks or unmarks a task, then saves the updated list. */
+    private String updateTaskStatus(int taskIndex, boolean shouldMark) throws IOException {
+        try {
+            Task task = tasks.getTask(taskIndex);
+            if (shouldMark) {
+                task.mark();
+            } else {
+                task.unmark();
+            }
+            storage.save(tasks);
+            String action = shouldMark ? "Marked" : "Unmarked";
+            return String.format("%s:\n%s", action, task);
+        } catch (IndexOutOfBoundsException exception) {
+            return taskNotFoundMessage(taskIndex);
+        }
+    }
+
+    /** Adds a task and saves the updated list. */
+    private String addTask(Task task) throws IOException {
+        tasks.addTask(task);
+        storage.save(tasks);
+        return String.format("added: %s\nNow you have %d tasks in the list", task, tasks.getLength());
+    }
+
+    /** Deletes a task and saves the updated list. */
+    private String deleteTask(int taskIndex) throws IOException {
+        try {
+            Task taskToDelete = tasks.getTask(taskIndex);
+            tasks.deleteTask(taskIndex);
+            storage.save(tasks);
+            return String.format("Deleted:\n%s\nNow you have %d tasks in the list",
+                    taskToDelete, tasks.getLength());
+        } catch (IndexOutOfBoundsException exception) {
+            return taskNotFoundMessage(taskIndex);
+        }
+    }
+
+    /** Creates the response used when a command refers to a missing task. */
+    private static String taskNotFoundMessage(int taskIndex) {
+        return String.format("You don't have task number %d", taskIndex + 1);
     }
 }
