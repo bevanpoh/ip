@@ -104,6 +104,8 @@ public class Am {
      * @throws IOException if an updated task list cannot be saved
      */
     private String processInput(String input) throws IOException {
+        assert tasks != null : "Tasks must be loaded before processing a command";
+
         Command command;
         try {
             command = CommandParser.parse(input);
