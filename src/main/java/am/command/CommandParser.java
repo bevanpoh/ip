@@ -106,14 +106,14 @@ public class CommandParser {
 
     /** Converts a one-based user task number into a zero-based list index. */
     private static int parseTaskIndex(String argument) {
-        argument = argument.trim();
-        if (argument.isEmpty()) {
+        String trimmedArgument = argument.trim();
+        if (trimmedArgument.isEmpty()) {
             throw new InvalidCommandException("You messed up the command.");
         }
 
         int userIndex;
         try {
-            userIndex = Integer.parseInt(argument);
+            userIndex = Integer.parseInt(trimmedArgument);
         } catch (NumberFormatException exception) {
             throw new InvalidCommandException("You messed up the command.");
         }
