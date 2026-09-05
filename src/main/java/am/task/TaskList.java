@@ -2,6 +2,8 @@ package am.task;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Maintains the ordered collection of tasks used by the application.
@@ -83,19 +85,11 @@ public class TaskList {
      */
     public String getMatchingTask(String keyword) {
         String normalizedKeyword = keyword.trim().toLowerCase();
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            if (task.getName().toLowerCase().contains(normalizedKeyword)) {
-                if (!result.isEmpty()) {
-                    result.append("\n");
-                }
-                result.append(i + 1)
-                        .append(". ")
-                        .append(task);
-            }
-        }
-        return result.toString();
+        return IntStream.range(0, tasks.size())
+                .sequential()
+                .filter(i -> tasks.get(i).getName().toLowerCase().contains(normalizedKeyword))
+                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
+                .collect(Collectors.joining("\n"));
     }
 
     /**
@@ -105,19 +99,11 @@ public class TaskList {
      * @return numbered display text for past tasks
      */
     public String getPastTasks(LocalDateTime datetime) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (!tasks.get(i).isPast(datetime)) {
-                continue;
-            }
-            if (!result.isEmpty()) {
-                result.append("\n");
-            }
-            result.append(i + 1)
-                    .append(". ")
-                    .append(tasks.get(i));
-        }
-        return result.toString();
+        return IntStream.range(0, tasks.size())
+                .sequential()
+                .filter(i -> tasks.get(i).isPast(datetime))
+                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
+                .collect(Collectors.joining("\n"));
     }
 
     /**
@@ -127,15 +113,9 @@ public class TaskList {
      */
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (i > 0) {
-                result.append("\n");
-            }
-            result.append(i + 1)
-                    .append(". ")
-                    .append(tasks.get(i));
-        }
-        return result.toString();
+        return IntStream.range(0, tasks.size())
+                .sequential()
+                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
+                .collect(Collectors.joining("\n"));
     }
 }
