@@ -19,6 +19,14 @@ public class TaskList {
         tasks = new ArrayList<>();
     }
 
+    /** Creates an independent list with one replacement, sharing untouched tasks. */
+    public TaskList withReplacement(int index, Task replacement) {
+        TaskList candidate = new TaskList();
+        candidate.tasks.addAll(tasks);
+        candidate.tasks.set(index, replacement);
+        return candidate;
+    }
+
     /**
      * Appends a task to the end of the list.
      *

@@ -57,6 +57,14 @@ public class EventTask extends Task {
         this.to = to;
     }
 
+    public LocalDateTime getFrom() {
+        return from;
+    }
+
+    public LocalDateTime getTo() {
+        return to;
+    }
+
     /**
      * {@inheritDoc}
      */
