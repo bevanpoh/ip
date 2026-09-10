@@ -74,18 +74,7 @@ public class DeadlineTask extends Task {
             throw new CorruptedDataException("Malformed deadline task data: " + line);
         }
 
-        boolean done;
-        switch (parts[1]) {
-            case "0":
-                done = false;
-                break;
-            case "1":
-                done = true;
-                break;
-            default:
-                throw new CorruptedDataException("Unknown deadline task status: " + parts[1]);
-        }
-
+        boolean done = parseCompletionStatus(parts[1], "deadline");
         return new DeadlineTask(parts[2], LocalDateTime.parse(parts[3]), done);
     }
 

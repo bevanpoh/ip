@@ -2,6 +2,7 @@ package am.task;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -85,11 +86,7 @@ public class TaskList {
      */
     public String getMatchingTask(String keyword) {
         String normalizedKeyword = keyword.trim().toLowerCase();
-        return IntStream.range(0, tasks.size())
-                .sequential()
-                .filter(i -> tasks.get(i).getName().toLowerCase().contains(normalizedKeyword))
-                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
-                .collect(Collectors.joining("\n"));
+        return formatTasks(index -> tasks.get(index).getName().toLowerCase().contains(normalizedKeyword));
     }
 
     /**
@@ -99,11 +96,7 @@ public class TaskList {
      * @return numbered display text for past tasks
      */
     public String getPastTasks(LocalDateTime datetime) {
-        return IntStream.range(0, tasks.size())
-                .sequential()
-                .filter(i -> tasks.get(i).isPast(datetime))
-                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
-                .collect(Collectors.joining("\n"));
+        return formatTasks(index -> tasks.get(index).isPast(datetime));
     }
 
     /**
@@ -113,9 +106,19 @@ public class TaskList {
      */
     @Override
     public String toString() {
+        return formatTasks(index -> true);
+    }
+
+    /**
+     * Formats selected tasks while preserving their original list numbers.
+     *
+     * @param shouldInclude predicate selecting zero-based task indexes
+     * @return numbered task descriptions separated by newlines, or an empty string
+     */
+    private String formatTasks(IntPredicate shouldInclude) {
         return IntStream.range(0, tasks.size())
-                .sequential()
-                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
+                .filter(shouldInclude)
+                .mapToObj(index -> (index + 1) + ". " + tasks.get(index))
                 .collect(Collectors.joining("\n"));
     }
 }
