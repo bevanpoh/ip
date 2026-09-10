@@ -139,7 +139,7 @@ public class Am {
         };
     }
 
-    /** Saves a validated candidate before installing it as the live task list. */
+    /** Replaces and saves a task, restoring the original if saving fails. */
     private String editTask(Command.EditCommand command) {
         int number = command.getTaskNumber();
         if (number < 1 || number > tasks.getLength()) {
@@ -151,13 +151,13 @@ public class Am {
             if (replacement.toSerialized().equals(original.toSerialized())) {
                 return "No changes.";
             }
-            TaskList candidate = tasks.withReplacement(number - 1, replacement);
-            storage.save(candidate);
-            tasks = candidate;
+            tasks.replaceTask(number - 1, replacement);
+            storage.save(tasks);
             return String.format("Edited:\n%d. %s", number, replacement);
         } catch (InvalidCommandException exception) {
             return exception.getMessage();
         } catch (IOException exception) {
+            tasks.replaceTask(number - 1, original);
             return STORAGE_ERROR_MESSAGE;
         }
     }

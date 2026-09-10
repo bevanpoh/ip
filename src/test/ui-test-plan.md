@@ -533,7 +533,7 @@ without changing real user file permissions. The edit response is:
 I couldn't access my memory.
 ~~~
 
-The live list retains the original task and continues to accept commands. A
+The live list restores the original task and continues to accept commands. A
 failure before writing also leaves the file unchanged. A failure after
 truncation may leave a partial file; disk rollback is not part of the existing
 save contract. Test that the live task is still unchanged in that case.
@@ -628,9 +628,10 @@ Unknown type markers, invalid status values, missing fields, and extra fields sh
 - CommandParserTest covers optional fields in any order, internal description
   spacing, embedded slashes, signed integer indexes, duplicate and unknown
   markers, empty values, case sensitivity, and leading whitespace.
-- TaskEditTest covers all applicable fields, completion preservation, independent
-  candidate lists, strict dates, date-only defaults, equal endpoints, and
-  time-only edits that preserve the endpoint date and untouched precision.
+- TaskEditTest covers all applicable fields, completion preservation, in-place
+  replacement with unchanged list size and order, strict dates, date-only
+  defaults, equal endpoints, and time-only edits that preserve the endpoint
+  date and untouched precision.
 - AmEditTest covers exact responses, full-list numbering after find/past,
   invalid indexes including integer limits, no-op behavior, whole-file saving,
   save/reload, and failures before and after file truncation.

@@ -1,11 +1,9 @@
 package am.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -81,23 +79,24 @@ public class TaskEditTest {
     }
 
     @Test
-    void createsAnIndependentListWithOneReplacement() {
-        TaskList original = new TaskList();
+    void replacesOneTaskInPlaceAndReturnsTheOriginal() {
+        TaskList tasks = new TaskList();
         TodoTask first = new TodoTask("first");
         TodoTask second = new TodoTask("second");
-        original.addTask(first);
-        original.addTask(second);
+        TodoTask third = new TodoTask("third");
+        tasks.addTask(first);
+        tasks.addTask(second);
+        tasks.addTask(third);
         Task replacement = new TaskEdit(Map.of("/name", "changed")).applyTo(second);
-        TaskList candidate = original.withReplacement(1, replacement);
+        Task previous = tasks.replaceTask(1, replacement);
 
-        assertEquals(2, candidate.getLength());
-        assertSame(first, candidate.getTask(0));
-        assertSame(second, original.getTask(1));
-        assertSame(replacement, candidate.getTask(1));
-        candidate.deleteTask(0);
-        assertEquals(2, original.getLength());
-        assertFalse(second.isDone());
-        first.mark();
-        assertTrue(first.isDone());
+        assertEquals(3, tasks.getLength());
+        assertSame(first, tasks.getTask(0));
+        assertSame(replacement, tasks.getTask(1));
+        assertSame(third, tasks.getTask(2));
+        assertSame(second, previous);
+
+        tasks.replaceTask(1, previous);
+        assertSame(second, tasks.getTask(1));
     }
 }
