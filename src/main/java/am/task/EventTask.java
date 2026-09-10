@@ -80,18 +80,7 @@ public class EventTask extends Task {
             throw new CorruptedDataException("Malformed event task data: " + line);
         }
 
-        boolean done;
-        switch (parts[1]) {
-            case "0":
-                done = false;
-                break;
-            case "1":
-                done = true;
-                break;
-            default:
-                throw new CorruptedDataException("Unknown event task status: " + parts[1]);
-        }
-
+        boolean done = parseCompletionStatus(parts[1], "event");
         return new EventTask(parts[2], LocalDateTime.parse(parts[3]),
                 LocalDateTime.parse(parts[4]), done);
     }

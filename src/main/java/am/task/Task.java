@@ -113,6 +113,17 @@ public abstract class Task {
         };
     }
 
+    /** Parses the compact completion status used by all persisted task types. */
+    protected static boolean parseCompletionStatus(String serializedStatus, String taskType)
+            throws CorruptedDataException {
+        return switch (serializedStatus) {
+            case "0" -> false;
+            case "1" -> true;
+            default -> throw new CorruptedDataException(
+                    "Unknown " + taskType + " task status: " + serializedStatus);
+        };
+    }
+
     /**
      * Returns the compact completion status used in persisted data.
      *

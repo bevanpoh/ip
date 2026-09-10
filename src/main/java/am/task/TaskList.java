@@ -2,6 +2,7 @@ package am.task;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.function.IntPredicate;
 
 /**
  * Maintains the ordered collection of tasks used by the application.
@@ -83,19 +84,7 @@ public class TaskList {
      */
     public String getMatchingTask(String keyword) {
         String normalizedKeyword = keyword.trim().toLowerCase();
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            if (task.getName().toLowerCase().contains(normalizedKeyword)) {
-                if (!result.isEmpty()) {
-                    result.append("\n");
-                }
-                result.append(i + 1)
-                        .append(". ")
-                        .append(task);
-            }
-        }
-        return result.toString();
+        return formatTasks(index -> tasks.get(index).getName().toLowerCase().contains(normalizedKeyword));
     }
 
     /**
@@ -105,19 +94,7 @@ public class TaskList {
      * @return numbered display text for past tasks
      */
     public String getPastTasks(LocalDateTime datetime) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (!tasks.get(i).isPast(datetime)) {
-                continue;
-            }
-            if (!result.isEmpty()) {
-                result.append("\n");
-            }
-            result.append(i + 1)
-                    .append(". ")
-                    .append(tasks.get(i));
-        }
-        return result.toString();
+        return formatTasks(index -> tasks.get(index).isPast(datetime));
     }
 
     /**
@@ -127,15 +104,28 @@ public class TaskList {
      */
     @Override
     public String toString() {
+        return formatTasks(index -> true);
+    }
+
+    /** Formats the tasks whose indexes satisfy the supplied predicate. */
+    private String formatTasks(IntPredicate shouldInclude) {
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (i > 0) {
-                result.append("\n");
+        for (int taskIndex = 0; taskIndex < tasks.size(); taskIndex++) {
+            if (!shouldInclude.test(taskIndex)) {
+                continue;
             }
-            result.append(i + 1)
-                    .append(". ")
-                    .append(tasks.get(i));
+            appendTask(result, taskIndex);
         }
         return result.toString();
+    }
+
+    /** Appends one numbered task, adding a separator when needed. */
+    private void appendTask(StringBuilder result, int taskIndex) {
+        if (!result.isEmpty()) {
+            result.append("\n");
+        }
+        result.append(taskIndex + 1)
+                .append(". ")
+                .append(tasks.get(taskIndex));
     }
 }
