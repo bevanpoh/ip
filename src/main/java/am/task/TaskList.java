@@ -3,6 +3,8 @@ package am.task;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.function.IntPredicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Maintains the ordered collection of tasks used by the application.
@@ -108,25 +110,16 @@ public class TaskList {
         return formatTasks(index -> true);
     }
 
-    /** Formats the tasks whose indexes satisfy the supplied predicate. */
+    /**
+     * Formats selected tasks while preserving their original list numbers.
+     *
+     * @param shouldInclude predicate selecting zero-based task indexes
+     * @return numbered task descriptions separated by newlines, or an empty string
+     */
     private String formatTasks(IntPredicate shouldInclude) {
-        StringBuilder result = new StringBuilder();
-        for (int taskIndex = 0; taskIndex < tasks.size(); taskIndex++) {
-            if (!shouldInclude.test(taskIndex)) {
-                continue;
-            }
-            appendTask(result, taskIndex);
-        }
-        return result.toString();
-    }
-
-    /** Appends one numbered task, adding a separator when needed. */
-    private void appendTask(StringBuilder result, int taskIndex) {
-        if (!result.isEmpty()) {
-            result.append("\n");
-        }
-        result.append(taskIndex + 1)
-                .append(". ")
-                .append(tasks.get(taskIndex));
+        return IntStream.range(0, tasks.size())
+                .filter(shouldInclude)
+                .mapToObj(index -> (index + 1) + ". " + tasks.get(index))
+                .collect(Collectors.joining("\n"));
     }
 }
