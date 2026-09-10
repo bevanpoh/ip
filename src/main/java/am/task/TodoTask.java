@@ -44,18 +44,7 @@ public class TodoTask extends Task {
             throw new CorruptedDataException("Malformed todo task data: " + line);
         }
 
-        boolean done;
-        switch (parts[1]) {
-            case "0":
-                done = false;
-                break;
-            case "1":
-                done = true;
-                break;
-            default:
-                throw new CorruptedDataException("Unknown todo task status: " + parts[1]);
-        }
-
+        boolean done = parseCompletionStatus(parts[1], "todo");
         return new TodoTask(parts[2], done);
     }
 
