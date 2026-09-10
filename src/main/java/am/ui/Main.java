@@ -28,6 +28,7 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/MainWindow.fxml"));
         AnchorPane mainWindow = fxmlLoader.load();
         MainWindow controller = fxmlLoader.getController();
+        assert controller != null : "MainWindow.fxml must provide a controller";
         controller.setAm(new Am());
 
         Scene scene = new Scene(mainWindow, INITIAL_WIDTH, INITIAL_HEIGHT);
