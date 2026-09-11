@@ -72,18 +72,25 @@ public class AmEditTest {
     @Test
     void rejectsInvalidEditsWithoutChangingMemoryOrDisk() throws Exception {
         String before = am.getResponse("list");
+        String syntaxMessage = "You messed up the command.\nExample: edit 1 /name buy milk";
         String[] malformed = {"edit", "edit 3", "edit abc /name x", "edit 3 /name",
             "edit 3 /to 1700 /to 1800", "edit 3 /until 1800", "edit 1 /by 2026-09-12",
             "edit 3 /by 2026-09-12", "edit 3 /type todo", "edit 3 /name a|b",
             "edit 3 /name /tmp", "edit 3 stray /name x", "edit 2147483648 /name x"};
         for (String input : malformed) {
-            assertEquals("You messed up the command.", am.getResponse(input), input);
+            assertEquals(syntaxMessage, am.getResponse(input), input);
+            assertTrue(am.isResponseError());
         }
         for (String value : new String[]{"2400", "2026-02-30", "1300", "900"}) {
             assertEquals("When is that?", am.getResponse("edit 3 /to " + value), value);
         }
-        for (int number : new int[]{0, -1, Integer.MIN_VALUE, Integer.MAX_VALUE, 4}) {
-            assertEquals("You don't have task number " + number, am.getResponse("edit " + number + " /name x"));
+        for (int number : new int[]{0, -1, Integer.MIN_VALUE}) {
+            assertEquals(syntaxMessage,
+                    am.getResponse("edit " + number + " /name x"));
+        }
+        for (int number : new int[]{Integer.MAX_VALUE, 4}) {
+            assertEquals("Task " + number + " does not exist. Choose a task number from 1 to 3."
+                    + " Use list to see your tasks.", am.getResponse("edit " + number + " /name x"));
         }
         assertEquals(before, am.getResponse("list"));
         assertEquals(ORIGINAL, Files.readString(file));

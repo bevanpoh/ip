@@ -65,6 +65,9 @@ public class Am {
 
         while (!isExitRequested) {
             String input = ui.readCommand();
+            if (input.isBlank()) {
+                continue;
+            }
             ui.printResponse(processInput(input));
         }
     }
@@ -77,6 +80,9 @@ public class Am {
      */
     public String getResponse(String input) {
         isResponseError = false;
+        if (input.isBlank()) {
+            return "";
+        }
         try {
             if (tasks == null) {
                 loadTasks();
@@ -137,6 +143,7 @@ public class Am {
     /** Executes a parsed command and persists changes when necessary. */
     private String executeCommand(Command command) throws IOException {
         return switch (command) {
+            case Command.EmptyCommand ignored -> "";
             case Command.ByeCommand ignored -> {
                 isExitRequested = true;
                 yield "You may leave, but I will be here.";
@@ -156,7 +163,7 @@ public class Am {
     private String editTask(Command.EditCommand command) {
         int number = command.getTaskNumber();
         if (number < 1 || number > tasks.getLength()) {
-            return createErrorResponse(String.format("You don't have task number %d", number));
+            return createErrorResponse(taskNotFoundMessage(number - 1));
         }
         Task original = tasks.getTask(number - 1);
         try {
@@ -213,7 +220,12 @@ public class Am {
     }
 
     /** Creates the response used when a command refers to a missing task. */
-    private static String taskNotFoundMessage(int taskIndex) {
-        return String.format("You don't have task number %d", taskIndex + 1);
+    private String taskNotFoundMessage(int taskIndex) {
+        if (tasks.getLength() == 0) {
+            return String.format("Task %d does not exist. Your task list is empty. Example: todo buy milk.",
+                    taskIndex + 1);
+        }
+        return String.format("Task %d does not exist. Choose a task number from 1 to %d."
+                + " Use list to see your tasks.", taskIndex + 1, tasks.getLength());
     }
 }

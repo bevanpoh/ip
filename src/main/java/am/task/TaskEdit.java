@@ -31,11 +31,11 @@ public class TaskEdit {
         Set<String> allowed = original instanceof EventTask ? Set.of("/name", "/from", "/to")
                 : original instanceof DeadlineTask ? Set.of("/name", "/by") : Set.of("/name");
         if (fields.isEmpty() || !allowed.containsAll(fields.keySet())) {
-            throw new InvalidCommandException("You messed up the command.");
+            throw InvalidCommandException.forSyntax("edit");
         }
         String name = fields.getOrDefault("/name", original.getName());
         if (name.isBlank() || name.contains("|") || name.contains("\r") || name.contains("\n")) {
-            throw new InvalidCommandException("You messed up the command.");
+            throw InvalidCommandException.forSyntax("edit");
         }
 
         Task replacement;

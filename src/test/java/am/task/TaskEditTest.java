@@ -71,7 +71,7 @@ public class TaskEditTest {
             TaskEdit edit = new TaskEdit(Map.of("/name", value));
             InvalidCommandException exception = assertThrows(
                     InvalidCommandException.class, () -> edit.applyTo(original));
-            assertEquals("You messed up the command.", exception.getMessage());
+            assertEquals("You messed up the command.\nExample: edit 1 /name buy milk", exception.getMessage());
         }
         assertThrows(InvalidCommandException.class, () -> new TaskEdit(Map.of("/by", "1800")).applyTo(original));
         assertThrows(InvalidCommandException.class, () -> new TaskEdit(Map.of()).applyTo(original));
