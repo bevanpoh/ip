@@ -133,6 +133,9 @@ must be repaired in the same edit. Loading validation is not tightened.
 
 ## Command input and validation
 
+When `list`, `past`, or `find` has no results, AM replies `I don't see anything`.
+This is a normal response, so the GUI clears the submitted command.
+
 Blank input is ignored. Leading/trailing whitespace and multiple spaces between
 arguments are accepted. Spacing within descriptions and embedded slashes such as
 `read/write` are preserved. Descriptions cannot contain `|` or line breaks;

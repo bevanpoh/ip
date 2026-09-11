@@ -16,8 +16,8 @@ The project has Gradle and JUnit tests. Execute the console scenarios manually o
 - User task numbers are one-based; the parser converts them to zero-based indexes.
 - Every response is printed between 65-underscore separator lines. Response text is indented by four spaces, including every line of a multi-line response.
 - Startup contains the seven-line AM banner, My name is AM., and What do you want?. Farewell is You may leave, but I will be here..
-- An empty list or past response has an empty body between the separators.
-- A find response contains only the matching task lines, with no header. No matches produce an empty body between the separators.
+- An empty list or past response shows `I don't see anything` between the separators.
+- A find response contains only the matching task lines, with no header. No matches produce `I don't see anything` between the separators.
 
 ### Supported commands
 
@@ -92,7 +92,7 @@ list
 bye
 ~~~
 
-The list response body is empty. The farewell response is You may leave, but I will be here..
+The list response body is `I don't see anything`. The farewell response is You may leave, but I will be here..
 
 ### UI-02: Add and list a todo
 
@@ -294,7 +294,7 @@ list
 bye
 ~~~
 
-The first eight malformed command lines each produce `You messed up the command.` followed on a new line by `Example: ` and the example for that command in docs/README.md. The final malformed date produces `When is that?`. No task is added, list has an empty body, and the application continues after each error.
+The first eight malformed command lines each produce `You messed up the command.` followed on a new line by `Example: ` and the example for that command in docs/README.md. The final malformed date produces `When is that?`. No task is added, list responds `I don't see anything`, and the application continues after each error.
 
 ### UI-10: Unknown commands, case, and whitespace
 
@@ -316,7 +316,7 @@ AAAAHHHHHHHHHHHHHHH
 You can't tell me to '<the exact input line>'
 ~~~
 
-Both list commands are accepted and have an empty body. The blank input produces no response or separators. Commands remain case-sensitive, while leading and trailing whitespace is accepted.
+Both list commands are accepted and respond `I don't see anything`. The blank input produces no response or separators. Commands remain case-sensitive, while leading and trailing whitespace is accepted.
 
 ### UI-11: Save and reload after restart
 
@@ -430,7 +430,7 @@ The first `find` response is:
 3. [D][ ] return book (by: Aug 28 2026 11:59 pm)
 ~~~
 
-The search is case-insensitive, matches text within task descriptions, and retains the original task numbers. The second `find` response has an empty body between the separators. Neither response contains a header.
+The search is case-insensitive, matches text within task descriptions, and retains the original task numbers. The second `find` response is `I don't see anything` between the separators. Neither response contains a header.
 
 ### UI-17: Edit details and preserve task identity
 
@@ -559,7 +559,7 @@ save contract. Test that the live task is still unchanged in that case.
 | CLI-14 | High | UI-13 | Add, mark, unmark, and delete mutations are persisted. |
 | CLI-15 | High | UI-14 | A corrupted record is handled without overwriting the file. |
 | CLI-16 | Medium | UI-15 | Duplicate structured markers are rejected and do not mutate the list. |
-| CLI-17 | High | UI-16 | Find returns case-insensitive description matches with original task numbers and an empty body for no matches. |
+| CLI-17 | High | UI-16 | Find returns case-insensitive description matches with original task numbers and `I don't see anything` for no matches. |
 | CLI-18 | High | UI-17 | Edits preserve omitted fields, type, completion, order, and count; full-file saving survives restart. |
 | CLI-19 | High | UI-18 | Invalid edits leave state unchanged; unchanged edits return No changes. without saving. |
 | CLI-20 | High | UI-19 | Multi-field and time-only edits follow date rules; GUI text input uses the same behavior. |

@@ -17,6 +17,7 @@ import am.ui.Ui;
 public class Am {
     private static final String CORRUPTED_DATA_MESSAGE = "What did you do to my memory?";
     private static final String DATA_FILE_PATH = "./data/AM.txt";
+    private static final String EMPTY_RESULT_MESSAGE = "I don't see anything";
     private static final String STORAGE_ERROR_MESSAGE = "I couldn't access my memory.";
 
     private final Storage storage;
@@ -158,15 +159,20 @@ public class Am {
                 isExitRequested = true;
                 yield "You may leave, but I will be here.";
             }
-            case Command.ListCommand ignored -> tasks.toString();
-            case Command.PastCommand ignored -> tasks.getPastTasks(LocalDateTime.now());
-            case Command.FindCommand findCommand -> tasks.getMatchingTask(findCommand.getKeyword());
+            case Command.ListCommand ignored -> formatTaskResponse(tasks.toString());
+            case Command.PastCommand ignored -> formatTaskResponse(tasks.getPastTasks(LocalDateTime.now()));
+            case Command.FindCommand findCommand -> formatTaskResponse(tasks.getMatchingTask(findCommand.getKeyword()));
             case Command.EditCommand editCommand -> editTask(editCommand);
             case Command.MarkCommand markCommand -> updateTaskStatus(markCommand.getIndex(), true);
             case Command.UnmarkCommand unmarkCommand -> updateTaskStatus(unmarkCommand.getIndex(), false);
             case Command.AddTaskCommand addTaskCommand -> addTask(addTaskCommand.getTask());
             case Command.DeleteTaskCommand deleteTaskCommand -> deleteTask(deleteTaskCommand.getIndex());
         };
+    }
+
+    /** Gives empty list and search results a visible, non-error response. */
+    private static String formatTaskResponse(String result) {
+        return result.isBlank() ? EMPTY_RESULT_MESSAGE : result;
     }
 
     /** Replaces and saves a task, restoring the original if saving fails. */
