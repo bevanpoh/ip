@@ -121,6 +121,35 @@ public class CommandParserTest {
         assertThrows(UnknownCommandException.class, () -> CommandParser.parse(""));
     }
 
+    @Test
+    void parsesEditFieldsInAnyOrderAndPreservesDescriptionSpacing() {
+        Command.EditCommand command = assertInstanceOf(Command.EditCommand.class,
+                CommandParser.parse("edit 3 /to 1800 /name team  meeting /from 1500"));
+        assertEquals(3, command.getTaskNumber());
+        EventTask original = new EventTask("old", "2026-09-10 1400", "2026-09-10 1600");
+        assertEquals("E | 0 | team  meeting | 2026-09-10T15:00 | 2026-09-10T18:00",
+                command.getEdit().applyTo(original).toSerialized());
+    }
+
+    @Test
+    void rejectsMalformedEditMarkersAndValues() {
+        for (String input : new String[]{"edit 1", "edit 1 /name", "edit 1 /name a /name b",
+            "edit 1 /Name a", "edit 1 /name a /unknown b", "edit 1 text /name a",
+            "edit 1 /name a\nb", "edit 1 /name /tmp", "edit 1 /to /name a"}) {
+            assertInvalid(input);
+        }
+        assertThrows(UnknownCommandException.class, () -> CommandParser.parse("EDIT 1 /name a"));
+        assertThrows(UnknownCommandException.class, () -> CommandParser.parse(" edit 1 /name a"));
+    }
+
+    @Test
+    void acceptsLiteralEmbeddedSlashesAndSignedIndexes() {
+        Command.EditCommand command = assertInstanceOf(Command.EditCommand.class,
+                CommandParser.parse("edit +01 /name read/write"));
+        assertEquals(1, command.getTaskNumber());
+        assertEquals("T | 0 | read/write", command.getEdit().applyTo(new TodoTask("old")).toSerialized());
+    }
+
     /**
      * Verifies the common error type and message for malformed commands.
      *

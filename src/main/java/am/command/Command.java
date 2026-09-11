@@ -1,12 +1,33 @@
 package am.command;
 
 import am.task.Task;
+import am.task.TaskEdit;
 
 /**
  * Represents a command parsed from user input.
  */
 public abstract sealed class Command {
     private Command() {
+    }
+
+    /** Requests a partial edit using the user's full-list task number. */
+    public static final class EditCommand extends Command {
+        private final int taskNumber;
+        private final TaskEdit edit;
+
+        /** Creates an edit whose task-dependent validation is deferred to execution. */
+        public EditCommand(int taskNumber, TaskEdit edit) {
+            this.taskNumber = taskNumber;
+            this.edit = edit;
+        }
+
+        public int getTaskNumber() {
+            return taskNumber;
+        }
+
+        public TaskEdit getEdit() {
+            return edit;
+        }
     }
 
     /**

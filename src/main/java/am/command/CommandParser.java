@@ -1,9 +1,15 @@
 package am.command;
 
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import am.task.DeadlineTask;
 import am.task.EventTask;
+import am.task.TaskEdit;
 import am.task.TodoTask;
 
 /**
@@ -33,6 +39,7 @@ public class CommandParser {
             case "list" -> requireNoArgument(argument, new Command.ListCommand());
             case "past" -> requireNoArgument(argument, new Command.PastCommand());
             case "find" -> parseFindCommand(argument);
+            case "edit" -> parseEditCommand(argument);
             case "mark" -> new Command.MarkCommand(parseTaskIndex(argument));
             case "unmark" -> new Command.UnmarkCommand(parseTaskIndex(argument));
             case "todo" -> parseTodoCommand(argument);
@@ -42,6 +49,47 @@ public class CommandParser {
             default -> throw new UnknownCommandException(String.format(
                     "AAAAHHHHHHHHHHHHHHH\nYou can't tell me to '%s'", input));
         };
+    }
+
+    /** Parses each edit marker once, preserving whitespace inside descriptions. */
+    private static Command parseEditCommand(String argument) {
+        String[] parts = argument.trim().split("\\s+", 2);
+        if (parts.length != 2 || argument.contains("\n") || argument.contains("\r")) {
+            throw new InvalidCommandException("You messed up the command.");
+        }
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(parts[0]);
+        } catch (NumberFormatException exception) {
+            throw new InvalidCommandException("You messed up the command.");
+        }
+        String parameters = parts[1];
+        Matcher markers = Pattern.compile("(?<!\\S)/\\S*").matcher(parameters);
+        Map<String, String> fields = new HashMap<>();
+        String previous = null;
+        int valueStart = 0;
+        while (markers.find()) {
+            if (previous == null && !parameters.substring(0, markers.start()).isBlank()) {
+                throw new InvalidCommandException("You messed up the command.");
+            }
+            if (previous != null) {
+                fields.put(previous, parameters.substring(valueStart, markers.start()).trim());
+            }
+            String marker = markers.group();
+            if (!Set.of("/name", "/by", "/from", "/to").contains(marker) || fields.containsKey(marker)) {
+                throw new InvalidCommandException("You messed up the command.");
+            }
+            previous = marker;
+            valueStart = markers.end();
+        }
+        if (previous == null) {
+            throw new InvalidCommandException("You messed up the command.");
+        }
+        fields.put(previous, parameters.substring(valueStart).trim());
+        if (fields.values().stream().anyMatch(String::isBlank)) {
+            throw new InvalidCommandException("You messed up the command.");
+        }
+        return new Command.EditCommand(taskNumber, new TaskEdit(fields));
     }
 
     /** Returns a command after confirming that it has no arguments. */

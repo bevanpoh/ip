@@ -20,6 +20,19 @@ public class TaskList {
     }
 
     /**
+     * Replaces a task in place without changing the list's size or order.
+     *
+     * @param taskIndex zero-based task index
+     * @param replacement task to put at the requested index
+     * @return the previous task
+     * @throws IndexOutOfBoundsException if the index is invalid
+     */
+    public Task replaceTask(int taskIndex, Task replacement) {
+        assert replacement != null : "A task list must not contain null tasks";
+        return tasks.set(taskIndex, replacement);
+    }
+
+    /**
      * Appends a task to the end of the list.
      *
      * @param task task to add

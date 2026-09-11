@@ -26,7 +26,12 @@ public class Am {
 
     /** Creates a chatbot that stores its tasks in the default data file. */
     public Am() {
-        storage = new Storage(DATA_FILE_PATH);
+        this(new Storage(DATA_FILE_PATH));
+    }
+
+    /** Creates a chatbot with supplied storage, allowing isolated persistence tests. */
+    public Am(Storage storage) {
+        this.storage = storage;
         ui = new Ui();
     }
 
@@ -126,11 +131,35 @@ public class Am {
             case Command.ListCommand ignored -> tasks.toString();
             case Command.PastCommand ignored -> tasks.getPastTasks(LocalDateTime.now());
             case Command.FindCommand findCommand -> tasks.getMatchingTask(findCommand.getKeyword());
+            case Command.EditCommand editCommand -> editTask(editCommand);
             case Command.MarkCommand markCommand -> updateTaskStatus(markCommand.getIndex(), true);
             case Command.UnmarkCommand unmarkCommand -> updateTaskStatus(unmarkCommand.getIndex(), false);
             case Command.AddTaskCommand addTaskCommand -> addTask(addTaskCommand.getTask());
             case Command.DeleteTaskCommand deleteTaskCommand -> deleteTask(deleteTaskCommand.getIndex());
         };
+    }
+
+    /** Replaces and saves a task, restoring the original if saving fails. */
+    private String editTask(Command.EditCommand command) {
+        int number = command.getTaskNumber();
+        if (number < 1 || number > tasks.getLength()) {
+            return String.format("You don't have task number %d", number);
+        }
+        Task original = tasks.getTask(number - 1);
+        try {
+            Task replacement = command.getEdit().applyTo(original);
+            if (replacement.toSerialized().equals(original.toSerialized())) {
+                return "No changes.";
+            }
+            tasks.replaceTask(number - 1, replacement);
+            storage.save(tasks);
+            return String.format("Edited:\n%d. %s", number, replacement);
+        } catch (InvalidCommandException exception) {
+            return exception.getMessage();
+        } catch (IOException exception) {
+            tasks.replaceTask(number - 1, original);
+            return STORAGE_ERROR_MESSAGE;
+        }
     }
 
     /** Marks or unmarks a task, then saves the updated list. */

@@ -142,6 +142,10 @@ public abstract class Task {
         return name;
     }
 
+    public boolean isDone() {
+        return status == TaskStatus.DONE;
+    }
+
     /**
      * Formats the task for display to the user.
      *

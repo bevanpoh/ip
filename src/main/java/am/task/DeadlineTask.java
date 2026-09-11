@@ -50,6 +50,10 @@ public class DeadlineTask extends Task {
         this.by = by;
     }
 
+    public LocalDateTime getBy() {
+        return by;
+    }
+
     /**
      * {@inheritDoc}
      */
