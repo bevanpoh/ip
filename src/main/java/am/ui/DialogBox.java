@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -22,6 +23,7 @@ import javafx.scene.layout.Priority;
 public class DialogBox extends HBox {
     private static final String AM_AVATAR_IMAGE_PATH = "/images/am-avatar.png";
     private static final String USER_AVATAR = "Y";
+    private static final double USER_MESSAGE_WIDTH_RATIO = 0.8;
 
     @FXML
     private Label dialog;
@@ -50,8 +52,6 @@ public class DialogBox extends HBox {
         }
 
         dialog.setText(message);
-        dialog.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(dialog, Priority.ALWAYS);
         avatarLabel.setText(USER_AVATAR);
         avatarLabel.setVisible(isUser);
         avatarLabel.setManaged(isUser);
@@ -63,7 +63,15 @@ public class DialogBox extends HBox {
         getStyleClass().add(isUser ? "user-dialog" : "am-dialog");
 
         if (isUser) {
+            // Leave room for the avatar and an empty margin beside long user commands.
+            dialog.maxWidthProperty().bind(Bindings.createDoubleBinding(() -> Math.max(0,
+                    getWidth() - getInsets().getLeft() - getInsets().getRight()
+                            - avatarLabel.getWidth() - getSpacing()) * USER_MESSAGE_WIDTH_RATIO,
+                    widthProperty(), insetsProperty(), avatarLabel.widthProperty(), spacingProperty()));
             flip();
+        } else {
+            dialog.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(dialog, Priority.ALWAYS);
         }
     }
 
