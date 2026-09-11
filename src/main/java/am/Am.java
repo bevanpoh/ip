@@ -23,6 +23,7 @@ public class Am {
     private final Ui ui;
     private boolean isExitRequested;
     private boolean isResponseError;
+    private boolean isUnknownCommand;
     private TaskList tasks;
 
     /** Creates a chatbot that stores its tasks in the default data file. */
@@ -80,6 +81,7 @@ public class Am {
      */
     public String getResponse(String input) {
         isResponseError = false;
+        isUnknownCommand = false;
         if (input.isBlank()) {
             return "";
         }
@@ -109,6 +111,11 @@ public class Am {
         return isResponseError;
     }
 
+    /** Returns whether the GUI should retain the last command for correction. */
+    public boolean shouldPreserveInput() {
+        return isResponseError && !isUnknownCommand;
+    }
+
     /** Marks a failed response for GUI styling while preserving its original message. */
     private String createErrorResponse(String message) {
         isResponseError = true;
@@ -133,7 +140,10 @@ public class Am {
         Command command;
         try {
             command = CommandParser.parse(input);
-        } catch (UnknownCommandException | InvalidCommandException exception) {
+        } catch (UnknownCommandException exception) {
+            isUnknownCommand = true;
+            return createErrorResponse(exception.getMessage());
+        } catch (InvalidCommandException exception) {
             return createErrorResponse(exception.getMessage());
         }
 
