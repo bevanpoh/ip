@@ -264,9 +264,10 @@ bye
 The invalid operations return:
 
 ~~~
-You don't have task number 2
-You don't have task number 0
-You don't have task number 3
+Task 2 does not exist. Choose a task number from 1 to 1. Use list to see your tasks.
+You messed up the command.
+Example: unmark 1
+Task 3 does not exist. Choose a task number from 1 to 1. Use list to see your tasks.
 ~~~
 
 The list remains:
@@ -293,7 +294,7 @@ list
 bye
 ~~~
 
-The first eight malformed command lines each produce You messed up the command. The final malformed date produces When is that?. No task is added, list has an empty body, and the application continues after each error.
+The first eight malformed command lines each produce `You messed up the command.` followed on a new line by `Example: ` and the example for that command in docs/README.md. The final malformed date produces `When is that?`. No task is added, list has an empty body, and the application continues after each error.
 
 ### UI-10: Unknown commands, case, and whitespace
 
@@ -308,14 +309,14 @@ list
 bye
 ~~~
 
-The first four input lines are treated as unknown commands. Their bodies have this form:
+Only the first two input lines are treated as unknown commands. Their bodies have this form:
 
 ~~~
 AAAAHHHHHHHHHHHHHHH
 You can't tell me to '<the exact input line>'
 ~~~
 
-The later list command is accepted and has an empty body. Commands are case-sensitive. Leading whitespace makes a command unknown; trailing whitespace on a no-argument command is ignored by the current split logic.
+Both list commands are accepted and have an empty body. The blank input produces no response or separators. Commands remain case-sensitive, while leading and trailing whitespace is accepted.
 
 ### UI-11: Save and reload after restart
 
@@ -407,7 +408,7 @@ list
 bye
 ~~~
 
-Both structured commands return You messed up the command. The list remains empty. This specifically tests repeated /by or /to; the current parser does not reject every unrecognised slash marker.
+Both structured commands return `You messed up the command.` followed on a new line by their deadline/event example from docs/README.md. The list remains empty. Also verify that an unknown marker added to an otherwise valid deadline or event receives the same syntax response and leaves the list empty.
 
 ### UI-16: Find tasks by keyword
 
@@ -484,19 +485,19 @@ Begin with the final list from UI-17. Verify these exact response bodies:
 | Input | Response |
 | --- | --- |
 | edit 3 /to 1800 | No changes. |
-| edit 3 | You messed up the command. |
-| edit 3 /name | You messed up the command. |
-| edit 3 /to 1700 /to 1800 | You messed up the command. |
-| edit 3 /until 1800 | You messed up the command. |
-| edit 1 /by 2026-09-12 | You messed up the command. |
-| edit 3 /type todo | You messed up the command. |
-| edit 3 /name inspect /tmp | You messed up the command. |
+| edit 3 | You messed up the command.<br>Example: edit 1 /name buy milk |
+| edit 3 /name | You messed up the command.<br>Example: edit 1 /name buy milk |
+| edit 3 /to 1700 /to 1800 | You messed up the command.<br>Example: edit 1 /name buy milk |
+| edit 3 /until 1800 | You messed up the command.<br>Example: edit 1 /name buy milk |
+| edit 1 /by 2026-09-12 | You messed up the command.<br>Example: edit 1 /name buy milk |
+| edit 3 /type todo | You messed up the command.<br>Example: edit 1 /name buy milk |
+| edit 3 /name inspect /tmp | You messed up the command.<br>Example: edit 1 /name buy milk |
 | edit 3 /to 2400 | When is that? |
 | edit 3 /to 900 | When is that? |
 | edit 3 /to 2026-02-30 | When is that? |
 | edit 3 /to 1300 | When is that? |
-| edit 4 /name missing | You don't have task number 4 |
-| edit 0 /name missing | You don't have task number 0 |
+| edit 4 /name missing | Task 4 does not exist. Choose a task number from 1 to 3. Use list to see your tasks. |
+| edit 0 /name missing | You messed up the command.<br>Example: edit 1 /name buy milk |
 
 The list and file remain unchanged after every command. A no-op does not call
 save. Continue with list and bye to verify errors do not terminate processing.
@@ -593,9 +594,9 @@ Verify the exception type and message for:
 - missing or repeated /by, /from, and /to values;
 - invalid dates such as deadline report /by Sunday;
 - missing find keywords such as find;
-- unknown names, different command case, leading whitespace, and empty input.
+- unknown names and different command case; leading whitespace is accepted and empty input is ignored.
 
-The current parser accepts numeric values such as 0 and -1 as commands and leaves range validation to TaskList/`am.Am`. It accepts trailing whitespace for no-argument commands and trims task arguments. It does not validate that a structured-task name is non-empty, and unrecognized slash markers can be ignored if required markers are present. Test these as compatibility behavior or change them deliberately with corresponding UI updates.
+The parser rejects missing, non-integer, overflowing, and non-positive task numbers with the common syntax message and a command example. Positive indexes outside the list are handled by `am.Am`. Verify outer whitespace is accepted, descriptions retain internal spacing and embedded slashes, and blank input produces an EmptyCommand. Reject blank descriptions, pipes, line breaks within descriptions, and unknown or repeated structured markers.
 
 ### Task serialization
 
@@ -638,18 +639,15 @@ Unknown type markers, invalid status values, missing fields, and extra fields sh
 - Use temporary directories for persistence tests. Set the English locale for
   exact date-output assertions and restore it afterward.
 - Edit validation rejects blank descriptions, pipes, line breaks, inappropriate
-  fields, and reversed final event intervals. Existing creation and loading
-  behavior remains unchanged; do not turn edit tests into broader validation
-  changes.
+  fields, and reversed final event intervals. Creation also rejects unsafe
+  descriptions and malformed markers. Loading behavior remains unchanged.
 
 ## 6. Known current limitations to track
 
 These are observations about the current implementation, not additional pass conditions:
 
 1. DeadlineTask.fromSerialized and EventTask.fromSerialized do not wrap an invalid serialized timestamp in CorruptedDataException. Such a line can escape the handled-memory path as an uncaught DateTimeParseException.
-2. The parser does not normalize leading whitespace or command case.
-3. The parser permits some malformed structured-task names and ignores unrecognized slash markers when required markers are still present.
-4. The application saves after successful add, mark, unmark, and delete commands, and edits that change a task, but does not create data/AM.txt merely by starting or listing an empty list.
+2. The application saves after successful add, mark, unmark, and delete commands, and edits that change a task, but does not create data/AM.txt merely by starting or listing an empty list.
 
 Add a regression test for each limitation if it is later fixed, and update the expected UI behavior at the same time.
 
