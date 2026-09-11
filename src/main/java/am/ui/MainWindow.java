@@ -91,7 +91,12 @@ public class MainWindow extends AnchorPane {
         String response = am.getResponse(input);
         appendDialog(DialogBox.getUserDialog(input));
         appendDialog(am.isResponseError() ? DialogBox.getErrorDialog(response) : DialogBox.getAmDialog(response));
-        userInput.clear();
+        if (am.isResponseError()) {
+            userInput.requestFocus();
+            userInput.positionCaret(userInput.getLength());
+        } else {
+            userInput.clear();
+        }
 
         if (am.isExitRequested()) {
             userInput.setDisable(true);
