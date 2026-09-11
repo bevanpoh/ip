@@ -69,7 +69,17 @@
     -fx-background-radius: 8px;
     -fx-border-color: #cbd5e1;
     -fx-border-radius: 8px;
-    -fx-padding: 0 12px;
+    -fx-padding: 0;
+}
+
+#userInput .content {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-padding: 8px 12px;
+}
+
+#userInput .scroll-pane {
+    -fx-padding: 0;
 }
 
 #sendButton {

@@ -4,7 +4,10 @@ import am.Am;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 
@@ -21,7 +24,7 @@ public class MainWindow extends AnchorPane {
     private VBox dialogContainer;
 
     @FXML
-    private TextField userInput;
+    private TextArea userInput;
 
     @FXML
     private Button sendButton;
@@ -37,6 +40,12 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void initialize() {
+        // Keep commands on one logical line even when pasted text contains line breaks or tabs.
+        userInput.setTextFormatter(new TextFormatter<String>(change -> {
+            change.setText(change.getText().replace("\r", "").replace("\n", "").replace("\t", ""));
+            return change;
+        }));
+        userInput.addEventFilter(KeyEvent.KEY_PRESSED, this::handleInputKeyPressed);
         dialogContainer.heightProperty().addListener(observable -> scrollToLatestMessage());
     }
 
@@ -49,6 +58,21 @@ public class MainWindow extends AnchorPane {
         this.am = am;
         appendDialog(DialogBox.getAmDialog(WELCOME_MESSAGE));
         userInput.requestFocus();
+    }
+
+    /** Preserves submission and focus navigation while the command field wraps visually. */
+    private void handleInputKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            event.consume();
+            handleUserInput();
+        } else if (event.getCode() == KeyCode.TAB) {
+            event.consume();
+            if (event.isShiftDown()) {
+                scrollPane.requestFocus();
+            } else {
+                sendButton.requestFocus();
+            }
+        }
     }
 
     /** Processes a command entered in the text field or submitted by the button. */
