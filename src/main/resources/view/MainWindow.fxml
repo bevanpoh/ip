@@ -26,6 +26,9 @@
         <Button fx:id="sendButton" mnemonicParsing="false" onAction="#handleUserInput"
                 prefHeight="41.0" prefWidth="76.0" text="Send"
                 AnchorPane.bottomAnchor="8.0" AnchorPane.rightAnchor="12.0" />
+        <Label fx:id="sessionEndHint" text="Session ended. You can close this window."
+               styleClass="session-end-hint" managed="false" visible="false" wrapText="true"
+               AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" />
         <Label mouseTransparent="true" text="AM" styleClass="window-title"
                AnchorPane.leftAnchor="16.0" AnchorPane.topAnchor="8.0" />
     </children>

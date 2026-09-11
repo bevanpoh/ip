@@ -3,6 +3,7 @@ package am.ui;
 import am.Am;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
@@ -15,6 +16,7 @@ import javafx.scene.layout.VBox;
  * FXML controller for the main AM conversation window.
  */
 public class MainWindow extends AnchorPane {
+    private static final double SESSION_HINT_SPACE = 24;
     private static final String WELCOME_MESSAGE = "My name is AM.\nWhat do you want?";
 
     @FXML
@@ -28,6 +30,9 @@ public class MainWindow extends AnchorPane {
 
     @FXML
     private Button sendButton;
+
+    @FXML
+    private Label sessionEndHint;
 
     private Am am;
 
@@ -91,7 +96,17 @@ public class MainWindow extends AnchorPane {
         if (am.isExitRequested()) {
             userInput.setDisable(true);
             sendButton.setDisable(true);
+            showSessionEndHint();
         }
+    }
+
+    /** Makes room below the disabled controls for a persistent session-ended hint. */
+    private void showSessionEndHint() {
+        sessionEndHint.setManaged(true);
+        sessionEndHint.setVisible(true);
+        AnchorPane.setBottomAnchor(userInput, AnchorPane.getBottomAnchor(userInput) + SESSION_HINT_SPACE);
+        AnchorPane.setBottomAnchor(sendButton, AnchorPane.getBottomAnchor(sendButton) + SESSION_HINT_SPACE);
+        AnchorPane.setBottomAnchor(scrollPane, AnchorPane.getBottomAnchor(scrollPane) + SESSION_HINT_SPACE);
     }
 
     /**
