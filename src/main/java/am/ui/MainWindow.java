@@ -85,7 +85,7 @@ public class MainWindow extends AnchorPane {
 
         String response = am.getResponse(input);
         appendDialog(DialogBox.getUserDialog(input));
-        appendDialog(DialogBox.getAmDialog(response));
+        appendDialog(am.isResponseError() ? DialogBox.getErrorDialog(response) : DialogBox.getAmDialog(response));
         userInput.clear();
 
         if (am.isExitRequested()) {

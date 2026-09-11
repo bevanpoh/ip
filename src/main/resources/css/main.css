@@ -59,6 +59,14 @@
     -fx-text-fill: #172033;
 }
 
+.am-dialog.error-dialog #dialog {
+    -fx-background-color: #fff1ef;
+    -fx-text-fill: #912b20;
+    -fx-border-color: #c44836;
+    -fx-border-width: 1px 1px 1px 3px;
+    -fx-border-radius: 12px;
+}
+
 .user-dialog #dialog {
     -fx-background-color: #2563eb;
     -fx-text-fill: white;

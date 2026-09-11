@@ -88,6 +88,18 @@ public class DialogBox extends HBox {
     }
 
     /**
+     * Creates an error response with a text heading and distinct visual styling.
+     *
+     * @param message error explanation to display
+     * @return a left-aligned AM error message box
+     */
+    public static DialogBox getErrorDialog(String message) {
+        DialogBox dialogBox = new DialogBox("Error\n" + message, false);
+        dialogBox.getStyleClass().add("error-dialog");
+        return dialogBox;
+    }
+
+    /**
      * Loads the supplied profile picture for AM.
      *
      * @return AM's profile picture
