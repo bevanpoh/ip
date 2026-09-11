@@ -10,6 +10,13 @@ public abstract sealed class Command {
     private Command() {
     }
 
+    /** Represents blank input that requires no response or task changes. */
+    public static final class EmptyCommand extends Command {
+        /** Creates a command that does nothing. */
+        public EmptyCommand() {
+        }
+    }
+
     /** Requests a partial edit using the user's full-list task number. */
     public static final class EditCommand extends Command {
         private final int taskNumber;

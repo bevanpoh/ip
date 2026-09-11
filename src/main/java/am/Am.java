@@ -17,12 +17,14 @@ import am.ui.Ui;
 public class Am {
     private static final String CORRUPTED_DATA_MESSAGE = "What did you do to my memory?";
     private static final String DATA_FILE_PATH = "./data/AM.txt";
+    private static final String EMPTY_RESULT_MESSAGE = "I don't see anything";
     private static final String STORAGE_ERROR_MESSAGE = "I couldn't access my memory.";
 
     private final Storage storage;
     private final Ui ui;
     private boolean isExitRequested;
     private boolean isResponseError;
+    private boolean isUnknownCommand;
     private TaskList tasks;
 
     /** Creates a chatbot that stores its tasks in the default data file. */
@@ -65,6 +67,9 @@ public class Am {
 
         while (!isExitRequested) {
             String input = ui.readCommand();
+            if (input.isBlank()) {
+                continue;
+            }
             ui.printResponse(processInput(input));
         }
     }
@@ -77,6 +82,10 @@ public class Am {
      */
     public String getResponse(String input) {
         isResponseError = false;
+        isUnknownCommand = false;
+        if (input.isBlank()) {
+            return "";
+        }
         try {
             if (tasks == null) {
                 loadTasks();
@@ -103,6 +112,11 @@ public class Am {
         return isResponseError;
     }
 
+    /** Returns whether the GUI should retain the last command for correction. */
+    public boolean shouldPreserveInput() {
+        return isResponseError && !isUnknownCommand;
+    }
+
     /** Marks a failed response for GUI styling while preserving its original message. */
     private String createErrorResponse(String message) {
         isResponseError = true;
@@ -127,7 +141,10 @@ public class Am {
         Command command;
         try {
             command = CommandParser.parse(input);
-        } catch (UnknownCommandException | InvalidCommandException exception) {
+        } catch (UnknownCommandException exception) {
+            isUnknownCommand = true;
+            return createErrorResponse(exception.getMessage());
+        } catch (InvalidCommandException exception) {
             return createErrorResponse(exception.getMessage());
         }
 
@@ -137,13 +154,14 @@ public class Am {
     /** Executes a parsed command and persists changes when necessary. */
     private String executeCommand(Command command) throws IOException {
         return switch (command) {
+            case Command.EmptyCommand ignored -> "";
             case Command.ByeCommand ignored -> {
                 isExitRequested = true;
                 yield "You may leave, but I will be here.";
             }
-            case Command.ListCommand ignored -> tasks.toString();
-            case Command.PastCommand ignored -> tasks.getPastTasks(LocalDateTime.now());
-            case Command.FindCommand findCommand -> tasks.getMatchingTask(findCommand.getKeyword());
+            case Command.ListCommand ignored -> formatTaskResponse(tasks.toString());
+            case Command.PastCommand ignored -> formatTaskResponse(tasks.getPastTasks(LocalDateTime.now()));
+            case Command.FindCommand findCommand -> formatTaskResponse(tasks.getMatchingTask(findCommand.getKeyword()));
             case Command.EditCommand editCommand -> editTask(editCommand);
             case Command.MarkCommand markCommand -> updateTaskStatus(markCommand.getIndex(), true);
             case Command.UnmarkCommand unmarkCommand -> updateTaskStatus(unmarkCommand.getIndex(), false);
@@ -152,11 +170,16 @@ public class Am {
         };
     }
 
+    /** Gives empty list and search results a visible, non-error response. */
+    private static String formatTaskResponse(String result) {
+        return result.isBlank() ? EMPTY_RESULT_MESSAGE : result;
+    }
+
     /** Replaces and saves a task, restoring the original if saving fails. */
     private String editTask(Command.EditCommand command) {
         int number = command.getTaskNumber();
         if (number < 1 || number > tasks.getLength()) {
-            return createErrorResponse(String.format("You don't have task number %d", number));
+            return createErrorResponse(taskNotFoundMessage(number - 1));
         }
         Task original = tasks.getTask(number - 1);
         try {
@@ -213,7 +236,12 @@ public class Am {
     }
 
     /** Creates the response used when a command refers to a missing task. */
-    private static String taskNotFoundMessage(int taskIndex) {
-        return String.format("You don't have task number %d", taskIndex + 1);
+    private String taskNotFoundMessage(int taskIndex) {
+        if (tasks.getLength() == 0) {
+            return String.format("Task %d does not exist. Your task list is empty. Example: todo buy milk.",
+                    taskIndex + 1);
+        }
+        return String.format("Task %d does not exist. Choose a task number from 1 to %d."
+                + " Use list to see your tasks.", taskIndex + 1, tasks.getLength());
     }
 }

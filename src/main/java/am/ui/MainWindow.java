@@ -91,7 +91,7 @@ public class MainWindow extends AnchorPane {
         String response = am.getResponse(input);
         appendDialog(DialogBox.getUserDialog(input));
         appendDialog(am.isResponseError() ? DialogBox.getErrorDialog(response) : DialogBox.getAmDialog(response));
-        if (am.isResponseError()) {
+        if (am.shouldPreserveInput()) {
             userInput.requestFocus();
             userInput.positionCaret(userInput.getLength());
         } else {

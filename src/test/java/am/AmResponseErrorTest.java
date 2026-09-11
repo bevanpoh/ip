@@ -33,12 +33,40 @@ public class AmResponseErrorTest {
     }
 
     @Test
+    void clearsUnknownCommandInputAndRetainsOtherErrorsAcrossResponses() {
+        Am am = new Am(new Storage(directory.resolve("tasks.txt").toString()));
+        assertFalse(am.shouldPreserveInput());
+        for (String command : new String[]{"unknown", "LIST"}) {
+            assertEquals("AAAAHHHHHHHHHHHHHHH\nYou can't tell me to '" + command + "'", am.getResponse(command));
+            assertTrue(am.isResponseError());
+            assertFalse(am.shouldPreserveInput());
+
+            am.getResponse("deadline");
+            assertTrue(am.isResponseError());
+            assertTrue(am.shouldPreserveInput());
+
+            assertEquals("", am.getResponse(" "));
+            assertFalse(am.isResponseError());
+            assertFalse(am.shouldPreserveInput());
+        }
+        am.getResponse("todo You can't tell me to 'unknown'");
+        assertFalse(am.isResponseError());
+        assertFalse(am.shouldPreserveInput());
+        am.getResponse("edit 1 /until 1800");
+        assertTrue(am.isResponseError());
+        assertTrue(am.shouldPreserveInput());
+        am.getResponse("list");
+        assertFalse(am.shouldPreserveInput());
+    }
+
+    @Test
     void distinguishesInvalidEditsFromUnchangedTasksAndErrorLikeNames() {
         Am am = new Am(new Storage(directory.resolve("tasks.txt").toString()));
         am.getResponse("todo You messed up the command.");
         assertFalse(am.isResponseError());
         am.getResponse("edit 1 /by 2026-09-12");
         assertTrue(am.isResponseError());
+        assertTrue(am.shouldPreserveInput());
         assertEquals("No changes.", am.getResponse("edit 1 /name You messed up the command."));
         assertFalse(am.isResponseError());
         am.getResponse("list");
@@ -52,6 +80,7 @@ public class AmResponseErrorTest {
         Am am = new Am(new Storage(file.toString()));
         assertEquals("What did you do to my memory?", am.getResponse("list"));
         assertTrue(am.isResponseError());
+        assertTrue(am.shouldPreserveInput());
         Files.writeString(file, "");
         am.getResponse("list");
         assertFalse(am.isResponseError());
@@ -68,6 +97,7 @@ public class AmResponseErrorTest {
         Am am = new Am(storage);
         assertEquals("I couldn't access my memory.", am.getResponse("list"));
         assertTrue(am.isResponseError());
+        assertTrue(am.shouldPreserveInput());
     }
 
     @Test
