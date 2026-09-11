@@ -22,6 +22,7 @@ public class Am {
     private final Storage storage;
     private final Ui ui;
     private boolean isExitRequested;
+    private boolean isResponseError;
     private TaskList tasks;
 
     /** Creates a chatbot that stores its tasks in the default data file. */
@@ -75,15 +76,16 @@ public class Am {
      * @return response to display to the user
      */
     public String getResponse(String input) {
+        isResponseError = false;
         try {
             if (tasks == null) {
                 loadTasks();
             }
             return processInput(input);
         } catch (CorruptedDataException exception) {
-            return CORRUPTED_DATA_MESSAGE;
+            return createErrorResponse(CORRUPTED_DATA_MESSAGE);
         } catch (IOException exception) {
-            return STORAGE_ERROR_MESSAGE;
+            return createErrorResponse(STORAGE_ERROR_MESSAGE);
         }
     }
 
@@ -94,6 +96,17 @@ public class Am {
      */
     public boolean isExitRequested() {
         return isExitRequested;
+    }
+
+    /** Returns whether the most recent GUI response reports a command or storage error. */
+    public boolean isResponseError() {
+        return isResponseError;
+    }
+
+    /** Marks a failed response for GUI styling while preserving its original message. */
+    private String createErrorResponse(String message) {
+        isResponseError = true;
+        return message;
     }
 
     /** Loads the task list from persistent storage. */
@@ -115,7 +128,7 @@ public class Am {
         try {
             command = CommandParser.parse(input);
         } catch (UnknownCommandException | InvalidCommandException exception) {
-            return exception.getMessage();
+            return createErrorResponse(exception.getMessage());
         }
 
         return executeCommand(command);
@@ -143,7 +156,7 @@ public class Am {
     private String editTask(Command.EditCommand command) {
         int number = command.getTaskNumber();
         if (number < 1 || number > tasks.getLength()) {
-            return String.format("You don't have task number %d", number);
+            return createErrorResponse(String.format("You don't have task number %d", number));
         }
         Task original = tasks.getTask(number - 1);
         try {
@@ -155,10 +168,10 @@ public class Am {
             storage.save(tasks);
             return String.format("Edited:\n%d. %s", number, replacement);
         } catch (InvalidCommandException exception) {
-            return exception.getMessage();
+            return createErrorResponse(exception.getMessage());
         } catch (IOException exception) {
             tasks.replaceTask(number - 1, original);
-            return STORAGE_ERROR_MESSAGE;
+            return createErrorResponse(STORAGE_ERROR_MESSAGE);
         }
     }
 
@@ -175,7 +188,7 @@ public class Am {
             String action = shouldMark ? "Marked" : "Unmarked";
             return String.format("%s:\n%s", action, task);
         } catch (IndexOutOfBoundsException exception) {
-            return taskNotFoundMessage(taskIndex);
+            return createErrorResponse(taskNotFoundMessage(taskIndex));
         }
     }
 
@@ -195,7 +208,7 @@ public class Am {
             return String.format("Deleted:\n%s\nNow you have %d tasks in the list",
                     taskToDelete, tasks.getLength());
         } catch (IndexOutOfBoundsException exception) {
-            return taskNotFoundMessage(taskIndex);
+            return createErrorResponse(taskNotFoundMessage(taskIndex));
         }
     }
 

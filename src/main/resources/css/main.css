@@ -48,20 +48,34 @@
     -fx-text-fill: #1d4ed8;
 }
 
-.am-dialog #dialog,
 .user-dialog #dialog {
     -fx-background-radius: 12px;
-    -fx-padding: 10px 13px;
+    -fx-padding: 8px 12px;
 }
 
 .am-dialog #dialog {
     -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-border-color: #cbd8e8;
+    -fx-border-width: 1px 1px 1px 3px;
+    -fx-border-radius: 8px;
+    -fx-font-size: 14px;
+    -fx-padding: 12px 14px;
     -fx-text-fill: #172033;
 }
 
+.am-dialog.error-dialog #dialog {
+    -fx-background-color: #fff1ef;
+    -fx-text-fill: #912b20;
+    -fx-border-color: #c44836;
+    -fx-border-width: 1px 1px 1px 3px;
+    -fx-border-radius: 8px;
+}
+
 .user-dialog #dialog {
-    -fx-background-color: #2563eb;
-    -fx-text-fill: white;
+    -fx-background-color: #e7effb;
+    -fx-font-size: 13px;
+    -fx-text-fill: #254d83;
 }
 
 #userInput {
@@ -69,7 +83,17 @@
     -fx-background-radius: 8px;
     -fx-border-color: #cbd5e1;
     -fx-border-radius: 8px;
-    -fx-padding: 0 12px;
+    -fx-padding: 0;
+}
+
+#userInput .content {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-padding: 8px 12px;
+}
+
+#userInput .scroll-pane {
+    -fx-padding: 0;
 }
 
 #sendButton {
@@ -81,6 +105,11 @@
 
 #sendButton:hover {
     -fx-background-color: #1d4ed8;
+}
+
+.session-end-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #52647d;
 }
 
 .window-title {
