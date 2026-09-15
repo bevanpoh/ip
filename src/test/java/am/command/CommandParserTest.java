@@ -188,7 +188,7 @@ public class CommandParserTest {
     }
 
     @Test
-    void retainsSeparateUnknownCommandAndDateErrors() {
+    void showsUnknownCommandErrorsAndSyntaxExamplesForInvalidDates() {
         for (String input : new String[]{"wat", "LIST", "EDIT 1 /name a"}) {
             UnknownCommandException exception = assertThrows(
                     UnknownCommandException.class, () -> CommandParser.parse(input));
@@ -198,7 +198,9 @@ public class CommandParserTest {
             "event meeting /from tomorrow /to 2026-09-12"}) {
             InvalidCommandException exception = assertThrows(
                     InvalidCommandException.class, () -> CommandParser.parse(input));
-            assertEquals("When is that?", exception.getMessage());
+            assertEquals("You messed up the command.\nExample: "
+                    + (input.startsWith("deadline") ? "deadline report /by 2026-09-12 1800"
+                            : "event meeting /from 2026-09-12 1400 /to 2026-09-12 1600"), exception.getMessage());
         }
     }
 

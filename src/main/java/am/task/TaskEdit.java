@@ -44,7 +44,7 @@ public class TaskEdit {
                 LocalDateTime from = resolve("/from", event.getFrom(), LocalTime.MIDNIGHT);
                 LocalDateTime to = resolve("/to", event.getTo(), LocalTime.of(23, 59));
                 if (to.isBefore(from)) {
-                    throw new InvalidCommandException("When is that?");
+                    throw InvalidCommandException.forSyntax("edit event");
                 }
                 replacement = new EventTask(name, from, to);
             } else if (original instanceof DeadlineTask deadline) {
@@ -53,7 +53,7 @@ public class TaskEdit {
                 replacement = new TodoTask(name);
             }
         } catch (DateTimeException exception) {
-            throw new InvalidCommandException("When is that?");
+            throw InvalidCommandException.forSyntax(original instanceof EventTask ? "edit event" : "edit deadline");
         }
         if (original.isDone()) {
             replacement.mark();

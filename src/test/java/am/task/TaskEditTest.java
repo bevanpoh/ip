@@ -65,7 +65,8 @@ public class TaskEditTest {
             TaskEdit edit = new TaskEdit(Map.of("/to", value));
             InvalidCommandException exception = assertThrows(
                     InvalidCommandException.class, () -> edit.applyTo(original));
-            assertEquals("When is that?", exception.getMessage());
+            assertEquals("You messed up the command.\n"
+                    + "Example: edit 1 /from 2026-09-12 1400 /to 2026-09-12 1600", exception.getMessage());
         }
         for (String value : new String[]{"", " ", "a|b", "a\nb", "a\rb"}) {
             TaskEdit edit = new TaskEdit(Map.of("/name", value));

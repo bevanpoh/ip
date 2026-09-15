@@ -10,7 +10,7 @@ public class InvalidCommandException extends RuntimeException {
     /**
      * Creates the common syntax error with an example for the recognized command.
      *
-     * @param commandType recognized command name
+     * @param commandType recognized command name, optionally qualified by the edited task type
      * @return syntax error containing a complete example command
      */
     public static InvalidCommandException forSyntax(String commandType) {
@@ -23,6 +23,8 @@ public class InvalidCommandException extends RuntimeException {
             case "deadline" -> "deadline report /by 2026-09-12 1800";
             case "event" -> "event meeting /from 2026-09-12 1400 /to 2026-09-12 1600";
             case "edit" -> "edit 1 /name buy milk";
+            case "edit deadline" -> "edit 1 /by 2026-09-12 1800";
+            case "edit event" -> "edit 1 /from 2026-09-12 1400 /to 2026-09-12 1600";
             case "mark" -> "mark 1";
             case "unmark" -> "unmark 1";
             case "delete" -> "delete 1";

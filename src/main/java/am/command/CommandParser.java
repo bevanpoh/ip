@@ -98,7 +98,7 @@ public class CommandParser {
         try {
             return new Command.AddTaskCommand(new DeadlineTask(taskParts[0], by));
         } catch (DateTimeParseException exception) {
-            throw new InvalidCommandException("When is that?");
+            throw InvalidCommandException.forSyntax("deadline");
         }
     }
 
@@ -115,7 +115,7 @@ public class CommandParser {
         try {
             return new Command.AddTaskCommand(new EventTask(taskParts[0], from, to));
         } catch (DateTimeParseException exception) {
-            throw new InvalidCommandException("When is that?");
+            throw InvalidCommandException.forSyntax("event");
         }
     }
 

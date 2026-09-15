@@ -82,7 +82,9 @@ public class AmEditTest {
             assertTrue(am.isResponseError());
         }
         for (String value : new String[]{"2400", "2026-02-30", "1300", "900"}) {
-            assertEquals("When is that?", am.getResponse("edit 3 /to " + value), value);
+            assertEquals("You messed up the command.\n"
+                    + "Example: edit 1 /from 2026-09-12 1400 /to 2026-09-12 1600",
+                    am.getResponse("edit 3 /to " + value), value);
         }
         for (int number : new int[]{0, -1, Integer.MIN_VALUE}) {
             assertEquals(syntaxMessage,
