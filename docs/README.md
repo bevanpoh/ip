@@ -12,7 +12,7 @@ or mark it as done. AM saves your tasks locally for your next session.
 
 **Jump to:** [Getting started](#getting-started) · [Command reference](#command-reference) ·
 [Dates and times](#dates-and-times) · [Saving your tasks](#saving-your-tasks) ·
-[Troubleshooting](#troubleshooting)
+[Troubleshooting](#troubleshooting) · [AI Usage Disclaimer](#ai-usage-disclaimer)
 
 ## Getting started
 
@@ -489,5 +489,11 @@ stored successfully. An edit restores its previous in-memory task, but the
 save operation can still leave the file incomplete. Check and back up the
 existing file before restarting or retrying; use `list` to inspect the current
 session, and check the list again after reopening AM to confirm what was saved.
+
+## AI Usage Disclaimer
+ChatGPT & Codex were heavily involved in developing this project, primarily in planning and 
+implementing several features past the basic requirements _(such as comprehensive error handling, 
+the UI, and improving architecture design)_, and in creating
+documentation for this project _(such as docstrings and this very user guide)_.
 
 [Back to top](#am)
